@@ -43,6 +43,10 @@ func main() {
 			fmt.Fprintf(os.Stderr, "git-caesar: `-u` option missing\n")
 			os.Exit(1)
 		}
+		if len(oppoPubKeys) == 0 {
+			fmt.Fprintf(os.Stderr, "git-caesar: Recipient's public key not found.\n")
+			os.Exit(1)
+		}
 		outBytes, err = encrypt(oppoPubKeys, prvKey, inBytes)
 		if err != nil {
 			panic(err)

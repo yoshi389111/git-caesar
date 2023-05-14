@@ -57,7 +57,7 @@ func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 		return nil, err
 	}
 
-	var pubKeyList []caesar.PublicKey
+	pubKeyList := make([]caesar.PublicKey, 0)
 	for _, sshPubKey := range sshPubKeys {
 		sshCryptoPubKey, ok := sshPubKey.(ssh.CryptoPublicKey)
 		if !ok {
