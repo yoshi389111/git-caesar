@@ -68,14 +68,14 @@ func getVersion() string {
 
 // ref. https://pkg.go.dev/github.com/jessevdk/go-flags
 type Options struct {
-	Help       bool   `short:"h" long:"help" description:"print help and exit"`
-	Version    bool   `short:"v" long:"version" description:"print version and exit"`
+	Help       bool   `short:"h" long:"help" description:"print help and exit."`
+	Version    bool   `short:"v" long:"version" description:"print version and exit."`
 	VersionAll bool   `short:"V" long:"version-all" hidden:"yes"`
-	PublicKey  string `short:"u" long:"public" value-name:"<target>" description:"github account, url or file"`
-	PrivateKey string `short:"k" long:"private" value-name:"<id_file>" description:"ssh private file"`
-	InputPath  string `short:"i" long:"input" value-name:"<input_file>" description:"the path of the file to read"`
-	OutputPath string `short:"o" long:"output" value-name:"<output_file>" description:"the path of the file to write"`
-	Decrypt    bool   `short:"d" long:"decrypt" description:"decryption mode"`
+	PublicKey  string `short:"u" long:"public" value-name:"<target>" description:"github account, url or file."`
+	PrivateKey string `short:"k" long:"private" value-name:"<id_file>" description:"ssh private file."`
+	InputPath  string `short:"i" long:"input" value-name:"<input_file>" description:"the path of the file to read. default: stdin"`
+	OutputPath string `short:"o" long:"output" value-name:"<output_file>" description:"the path of the file to write. default: stdout"`
+	Decrypt    bool   `short:"d" long:"decrypt" description:"decryption mode."`
 }
 
 func getOpts() Options {

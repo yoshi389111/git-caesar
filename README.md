@@ -13,13 +13,13 @@ Usage:
 Application Options:
 
 ```
-  -h, --help                    print help and exit
-  -v, --version                 print version and exit
-  -u, --public=<target>         github account, url or file
-  -k, --private=<id_file>       ssh private file
-  -i, --input=<input_file>      the path of the file to read
-  -o, --output=<output_file>    the path of the file to write
-  -d, --decrypt                 decryption mode
+  -h, --help                    print help and exit.
+  -v, --version                 print version and exit.
+  -u, --public=<target>         github account, url or file.
+  -k, --private=<id_file>       ssh private file.
+  -i, --input=<input_file>      the path of the file to read. default: stdin
+  -o, --output=<output_file>    the path of the file to write. default: stdout
+  -d, --decrypt                 decryption mode.
 ```
 
 ## Supported algorithms
