@@ -38,18 +38,20 @@ Application Options:
 
 ## Supported algorithms
 
-The following algorithms are supported.
+List of supported public key prefixes:
 
-* rsa -- Key length is 1024 bits or more
-* ecdsa -- secp256r1, secp384r1, secp521r1
-* ed25519
+* `ssh-rsa` -- Key length is 1024 bits or more
+* `ecdsa-sha2-nistp256`
+* `ecdsa-sha2-nistp384`
+* `ecdsa-sha2-nistp521`
+* `ssh-ed25519`
 
-The following algorithms are **NOT SUPPORTED**.
+**Unsupported** public key prefix list:
 
-* dsa
-* rsa -- Key length is less than 1024 bits
-* ecdsa-sk
-* ed25519-sk
+* `ssh-dss`
+* `ssh-rsa` -- Key length is less than 1024 bits
+* `sk-ecdsa-sha2-nistp256@openssh.com`
+* `sk-ssh-ed25519@openssh.com`
 
 ## Example of use
 
