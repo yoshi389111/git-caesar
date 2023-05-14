@@ -2,6 +2,14 @@
 
 This command encrypts and decrypts files using the public key registered on GitHub and your own private key.
 
+## Installation
+
+```
+go install github.com/yoshi389111/git-caesar@latest
+```
+
+Requires go 1.20 or higher
+
 ## usage
 
 Usage:
