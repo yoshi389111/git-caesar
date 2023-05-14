@@ -10,7 +10,13 @@ go install github.com/yoshi389111/git-caesar@latest
 
 Requires go 1.20 or higher
 
-## usage
+See below for how to uninstall
+
+```
+go clean -i github.com/yoshi389111/git-caesar
+```
+
+## Usage
 
 Usage:
 
@@ -38,7 +44,7 @@ The following algorithms are supported.
 * ecdsa -- secp256r1, secp384r1, secp521r1
 * ed25519
 
-The following algorithms are **not supported**.
+The following algorithms are **NOT SUPPORTED**.
 
 * dsa
 * rsa -- Key length is less than 1024 bits
