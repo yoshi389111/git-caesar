@@ -39,6 +39,10 @@ func main() {
 		}
 
 	} else {
+		if oppoPubKeys == nil {
+			fmt.Fprintf(os.Stderr, "git-caesar: `-u` option missing\n")
+			os.Exit(1)
+		}
 		outBytes, err = encrypt(oppoPubKeys, prvKey, inBytes)
 		if err != nil {
 			panic(err)

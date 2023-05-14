@@ -43,6 +43,9 @@ func ParseAuthKey(authKey string) (caesar.PublicKey, error) {
 }
 
 func GetPubKeys(target string) ([]caesar.PublicKey, error) {
+	if target == "" {
+		return nil, nil
+	}
 
 	bytes, err := readTarget(target)
 	if err != nil {
