@@ -54,13 +54,13 @@ git-caesar -u octacat -i secret.txt -o secret.zip -k ~/.ssh/id_secret
 Decrypt GitLab user `tanuki`'s file `secret.zip` and save it as `sceret.txt`.
 
 ```
-git-caesar -u https://gitlab.com/tanuki.keys -i secret.zip -o secret.txt
+git-caesar -d -u https://gitlab.com/tanuki.keys -i secret.zip -o secret.txt
 ```
 
 Same situation, no signature verification.
 
 ```
-git-caesar -i secret.zip -o secret.txt
+git-caesar -d -i secret.zip -o secret.txt
 ```
 
 ## Copyright and License
