@@ -34,7 +34,7 @@ Application Options:
   -d, --decrypt                 decryption mode.
 ```
 
-* `-u` specifies the location of the peer's public key. Get from `https://github.com/USER_NAME.keys` if the one specified looks like a GitHub username. If it starts with `http:` or `https:`, it will be fetched from the web. Otherwise, it will be determined as a file path. If you specify a file that looks like your GitHub username, specify it with a path (e.g. `-u ./octacat`). Required for encryption. For decryption, perform signature verification if specified.
+* `-u` specifies the location of the peer's public key. Get from `https://github.com/USER_NAME.keys` if the one specified looks like a GitHub username. If it starts with `http:` or `https:`, it will be fetched from the web. Otherwise, it will be determined as a file path. If you specify a file that looks like GitHub username, specify it with a path (e.g. `-u ./octacat`). Required for encryption. For decryption, perform signature verification if specified.
 * `-k` Specify your private key. If not specified, it searches `~/.ssh/id_ecdsa`, `~/.ssh/id_ed25519`, `~/.ssh/id_rsa` in order and uses the first one found.
 * `-i` Input file. Plaintext file to be encrypted when encrypting. When decrypting, please specify the ciphertext file to be decrypted. If no options are specified, it reads from standard input.
 * `-o` output file. Outputs to standard output if no option is specified.
@@ -52,7 +52,7 @@ List of supported public key prefixes:
 
 **Unsupported** public key prefix list:
 
-* `ssh-dss`
+* `ssh-dss` -- DSA
 * `ssh-rsa` -- Key length is less than 1024 bits
 * `sk-ecdsa-sha2-nistp256@openssh.com`
 * `sk-ssh-ed25519@openssh.com`
