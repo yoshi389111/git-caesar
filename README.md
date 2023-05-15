@@ -79,6 +79,12 @@ Same situation, no signature verification.
 git-caesar -d -i secret.zip -o secret.txt
 ```
 
+## Related Tech Blog Articles
+
+* dev.to [Passwordless encryption with public key for GitHub](https://dev.to/yoshi389111/passwordless-encryption-with-public-key-for-github-kb6) English
+* Qiita [GitHub 用の公開鍵でパスワードレスの暗号化/復号をしてみる
+](https://qiita.com/yoshi389111/items/238908e1933a8a4018c6) Japanese
+
 ## Copyright and License
 
 (C) 2023 SATO, Yoshiyuki
