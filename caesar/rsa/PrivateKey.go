@@ -33,7 +33,7 @@ func (p PrivateKey) Sign(message []byte) ([]byte, error) {
 }
 
 func (p PrivateKey) GetAuthKey() (string, error) {
-	sshPubKey, err := ssh.NewPublicKey(p.prvKey.PublicKey)
+	sshPubKey, err := ssh.NewPublicKey(&p.prvKey.PublicKey)
 	if err != nil {
 		return "", err
 	}
