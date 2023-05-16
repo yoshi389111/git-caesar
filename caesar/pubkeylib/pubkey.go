@@ -22,12 +22,12 @@ func ToCaesarPubKey(sshPubKey ssh.PublicKey) caesar.PublicKey {
 		return nil
 	}
 	cryptoPubKey := sshCryptoPubKey.CryptoPublicKey()
-	if rsaPubKey, ok := cryptoPubKey.(rsa.PublicKey); ok {
+	if rsaPubKey, ok := cryptoPubKey.(*rsa.PublicKey); ok {
 		if 1024 <= rsaPubKey.N.BitLen() {
-			return rs.NewPublicKey(rsaPubKey, sshPubKey)
+			return rs.NewPublicKey(*rsaPubKey, sshPubKey)
 		}
-	} else if ecdsaPubKey, ok := cryptoPubKey.(ecdsa.PublicKey); ok {
-		return ec.NewPublicKey(ecdsaPubKey, sshPubKey)
+	} else if ecdsaPubKey, ok := cryptoPubKey.(*ecdsa.PublicKey); ok {
+		return ec.NewPublicKey(*ecdsaPubKey, sshPubKey)
 	} else if ed25519PubKey, ok := cryptoPubKey.(ed25519.PublicKey); ok {
 		return ed.NewPublicKey(ed25519PubKey, sshPubKey)
 	}
