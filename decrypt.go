@@ -13,7 +13,7 @@ import (
 	"github.com/yoshi389111/git-caesar/iolib"
 )
 
-func decrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertext []byte) ([]byte, error) {
+func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertext []byte) ([]byte, error) {
 
 	// extract ZIP file
 	zipReader, err := zip.NewReader(bytes.NewReader(ciphertext), int64(len(ciphertext)))
@@ -41,10 +41,10 @@ func decrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	}
 
 	// existence check of sender's public key
-	if oppoPubKeys != nil {
+	if peerPubKeys != nil {
 		verifySender := false
-		for _, oppoPubKey := range oppoPubKeys {
-			if oppoPubKey.GetAuthKey() == caesarJson.Signer {
+		for _, peerPubKey := range peerPubKeys {
+			if peerPubKey.GetAuthKey() == caesarJson.Signer {
 				verifySender = true
 				break
 			}
@@ -55,7 +55,7 @@ func decrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	}
 
 	// verify signature
-	oppoPubKey, err := pubkeylib.ParseAuthKey(caesarJson.Signer)
+	peerPubKey, err := pubkeylib.ParseAuthKey(caesarJson.Signer)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func decrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	if err != nil {
 		return nil, err
 	}
-	if !oppoPubKey.Verify(caesarCipher, sig) {
+	if !peerPubKey.Verify(caesarCipher, sig) {
 		return nil, errors.New("signature verification failed")
 	}
 

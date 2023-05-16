@@ -16,7 +16,7 @@ import (
 func main() {
 	opts := getOpts()
 
-	oppoPubKeys, err := pubkeylib.GetPubKeys(opts.PublicKey)
+	peerPubKeys, err := pubkeylib.GetPubKeys(opts.PublicKey)
 	if err != nil {
 		panic(err)
 	}
@@ -33,21 +33,21 @@ func main() {
 
 	var outBytes []byte
 	if opts.Decrypt {
-		outBytes, err = decrypt(oppoPubKeys, prvKey, inBytes)
+		outBytes, err = decrypt(peerPubKeys, prvKey, inBytes)
 		if err != nil {
 			panic(err)
 		}
 
 	} else {
-		if oppoPubKeys == nil {
+		if peerPubKeys == nil {
 			fmt.Fprintf(os.Stderr, "git-caesar: `-u` option missing\n")
 			os.Exit(1)
 		}
-		if len(oppoPubKeys) == 0 {
+		if len(peerPubKeys) == 0 {
 			fmt.Fprintf(os.Stderr, "git-caesar: Recipient's public key not found.\n")
 			os.Exit(1)
 		}
-		outBytes, err = encrypt(oppoPubKeys, prvKey, inBytes)
+		outBytes, err = encrypt(peerPubKeys, prvKey, inBytes)
 		if err != nil {
 			panic(err)
 		}

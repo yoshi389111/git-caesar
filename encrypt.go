@@ -12,7 +12,7 @@ import (
 	"github.com/yoshi389111/git-caesar/iolib"
 )
 
-func encrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext []byte) ([]byte, error) {
+func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext []byte) ([]byte, error) {
 
 	// generate shared key (for AES-256-CBC)
 	shareKey := make([]byte, 32)
@@ -23,8 +23,8 @@ func encrypt(oppoPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 
 	// encrypt shared key per public key
 	var envelopes []interface{}
-	for _, oppoPubKey := range oppoPubKeys {
-		envelope, err := oppoPubKey.NewEnvelope(shareKey)
+	for _, peerPubKey := range peerPubKeys {
+		envelope, err := peerPubKey.NewEnvelope(shareKey)
 		if err != nil {
 			return nil, err
 		}
