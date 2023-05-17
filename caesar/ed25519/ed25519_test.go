@@ -13,17 +13,17 @@ import (
 func Test_Encrypt_Decrypt(t *testing.T) {
 	message := []byte("hello world --------------- 0256") // 32byte
 
-	bobPublicKey, bobPrivateKey, err := ed25519.GenerateKey(rand.Reader)
+	bobPubKey, bobPrvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ciphertext, alicePublicKey, err := Encrypt(&bobPublicKey, message)
+	ciphertext, alicePubKey, err := Encrypt(&bobPubKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plaintext, err := Decrypt(&bobPrivateKey, alicePublicKey, ciphertext)
+	plaintext, err := Decrypt(&bobPrvKey, alicePubKey, ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
