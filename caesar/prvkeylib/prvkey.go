@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"syscall"
 
 	"github.com/yoshi389111/git-caesar/caesar"
 	ec "github.com/yoshi389111/git-caesar/caesar/ecdsa"
@@ -43,11 +42,11 @@ func GetPrvKey(filePath string) (caesar.PrivateKey, error) {
 }
 
 func readPassphrase() string {
-	if !terminal.IsTerminal(syscall.Stdin) {
+	if !terminal.IsTerminal(int(os.Stdin.Fd())) {
 		return ""
 	}
 	fmt.Fprint(os.Stderr, "Enter passphrase: ")
-	bytePassword, _ := terminal.ReadPassword(syscall.Stdin)
+	bytePassword, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Fprintln(os.Stderr, "")
 	return string(bytePassword)
 }
