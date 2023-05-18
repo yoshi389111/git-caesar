@@ -4,17 +4,39 @@ This command encrypts and decrypts files using the public key registered on GitH
 
 ## Installation
 
+### How to build with GO command
+
+Requires go 1.20 or higher
+
+See below for how to install/upgrade.
+
 ```
 go install github.com/yoshi389111/git-caesar@latest
 ```
 
-Requires go 1.20 or higher
-
-See below for how to uninstall
+See below for how to uninstall.
 
 ```
 go clean -i github.com/yoshi389111/git-caesar
 ```
+
+### How to install using Homebrew
+
+See below for how to install/upgrade.
+
+```
+brew install yoshi389111/apps/git-caesar
+```
+
+See below for how to uninstall.
+
+```
+brew uninstall yoshi389111/apps/git-caesar
+```
+
+### Download from GitHub
+
+Download the file that matches your operating environment from "Releases."
 
 ## Usage
 
