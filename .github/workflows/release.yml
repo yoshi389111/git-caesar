@@ -1,0 +1,51 @@
+# -----------------------------------------------------------------------------
+#  Binary release workflow on version tagged push.
+# -----------------------------------------------------------------------------
+# This workflow will build the binaries for various platforms and upload them
+# to the release page. It will also releases the package manifest for homebrew
+# to the tap repository: https://github.com/yoshi389111/homebrew-apps
+#
+# To use this workflow, you will need to create a secret env variable called
+# "GO_RELEASER_TOKEN" in the repository settings under:
+#
+#    - "Settings" -> "Security" -> "Secrets and variables" -> "Secrets" -> "New repository secret"
+#
+# The value of this secret should be a personal access token with the permission
+# to "repo" in its scope. You can create a new token here:
+#
+# - Create new token: https://github.com/settings/tokens/new
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # required for the changelog of goreleaser to work correctly.
+          fetch-depth: 0
+
+      # Setup Go
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      # Build and release. Releases for homebrew as well.
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          version: latest
+          args: release --config .goreleaser.yml --clean
+        env:
+          # Use specific token and not "secrets.GITHUB_TOKEN"(auto-created token)
+          # due to publishing to homebrew tap repository.
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_TOKEN }}
