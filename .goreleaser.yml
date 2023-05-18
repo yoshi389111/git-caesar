@@ -1,0 +1,69 @@
+# =============================================================================
+#  GoReleaser configuration file for git-caesar
+# =============================================================================
+#  For local testing run:
+#    goreleaser --skip-publish --clean --snapshot
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod download
+
+# List of OS and architectures to build binaries for.
+builds:
+  - env:
+      - CGO_ENABLED=0
+    binary: git-caesar
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    # Variant for ARM32
+    goarm:
+      - "5"
+      - "6"
+      - "7"
+    # Ignore ARM32 build for both macOS and Windows
+    ignore:
+      - goos: darwin
+        goarch: arm
+      - goos: windows
+        goarch: arm
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -extldflags '-static' -X main.version={{.Version}} -X main.builtBy=goreleaser
+
+# macOS universal binaries. It will join the binaries for AMD64 and Amd64 into
+# a single binary. Suitable for Apple Silicon (Arm64) and Intel (amd64).
+universal_binaries:
+  -
+    name_template: 'git-caesar'
+    # Remove each after joining
+    replace: true
+
+# Homebrew configuration for macOS and Linux (Linuxbrew) packages.
+brews:
+  -
+    name: git-caesar
+    description: "Encrypt/decrypt files passwordlessly using GitHub's public key."
+    homepage: "https://github.com/yoshi389111/git-caesar"
+    folder: Formula
+    tap:
+      owner: yoshi389111
+      name: homebrew-apps
+    url_template: "https://github.com/yoshi389111/git-caesar/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@carlosbecker.com
+    download_strategy: CurlDownloadStrategy
+    install: |
+      bin.install "git-caesar"
+    test: |
+      system "#{bin}/git-caesar --version"
