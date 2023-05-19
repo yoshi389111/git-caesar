@@ -35,7 +35,7 @@ func ReadStdin() ([]byte, error) {
 	return bytes, nil
 }
 
-func WriteInputFile(filePath string, bytes []byte) error {
+func WriteOutputFile(filePath string, bytes []byte) error {
 	if filePath == "" {
 		return WriteStdout(bytes)
 	} else {

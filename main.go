@@ -49,7 +49,7 @@ func main() {
 		}
 	}
 
-	err = iolib.WriteInputFile(opts.OutputPath, outBytes)
+	err = iolib.WriteOutputFile(opts.OutputPath, outBytes)
 	if err != nil {
 		panic(err)
 	}
