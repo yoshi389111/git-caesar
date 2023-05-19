@@ -46,7 +46,7 @@ func WriteOutputFile(filePath string, bytes []byte) error {
 func WriteFile(filePath string, bytes []byte) error {
 	err := ioutil.WriteFile(filePath, bytes, 0644)
 	if err != nil {
-		return fmt.Errorf("Failed to write `%s`: %w", filePath, err)
+		return fmt.Errorf("Failed to write `%s`.\n\t%w", filePath, err)
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func WriteFile(filePath string, bytes []byte) error {
 func WriteStdout(bytes []byte) error {
 	_, err := os.Stdout.Write(bytes)
 	if err != nil {
-		return fmt.Errorf("Failed to write stdout: %w", err)
+		return fmt.Errorf("Failed to write stdout.\n\t%w", err)
 	}
 	return nil
 }

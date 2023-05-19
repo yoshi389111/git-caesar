@@ -37,24 +37,25 @@ func ToCaesarPubKey(sshPubKey ssh.PublicKey) caesar.PublicKey {
 func ParseAuthKey(authKey string) (caesar.PublicKey, error) {
 	sshPubKey, err := authkeylib.ParseString(authKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse authentication key. authKey=`%s`\n\t%w", authKey, err)
 	}
 	return ToCaesarPubKey(sshPubKey), nil
 }
 
 func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 	if target == "" {
+		// Returns `nil` as it is not required during decryption.
 		return nil, nil
 	}
 
 	bytes, err := readTarget(target)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to get public key. target=`%s`\n\t%w", target, err)
 	}
 
 	sshPubKeys, err := authkeylib.ParseAuthKeys(bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse public key. target=`%s`\n\t%w", target, err)
 	}
 
 	pubKeyList := make([]caesar.PublicKey, 0)

@@ -3,6 +3,7 @@ package rsa
 import (
 	"crypto/rsa"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/yoshi389111/git-caesar/caesar"
 	"github.com/yoshi389111/git-caesar/caesar/authkeylib"
@@ -24,7 +25,7 @@ func NewPublicKey(pubKey rsa.PublicKey, sshPubKey ssh.PublicKey) *PublicKey {
 func (p PublicKey) NewEnvelope(shareKey []byte) (caesar.Envelope, error) {
 	ciphertext, err := Encrypt(&p.pubKey, shareKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to encryption for rsa.\n\t%w", err)
 	}
 	envelope := Envelope{
 		Type:          "rsa",

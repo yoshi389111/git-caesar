@@ -3,6 +3,7 @@ package ed25519
 import (
 	"crypto/ed25519"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/yoshi389111/git-caesar/caesar"
 	"github.com/yoshi389111/git-caesar/caesar/authkeylib"
@@ -24,11 +25,11 @@ func NewPublicKey(pubKey ed25519.PublicKey, sshPubKey ssh.PublicKey) *PublicKey 
 func (p PublicKey) NewEnvelope(shareKey []byte) (caesar.Envelope, error) {
 	ciphertext, tempPubKey, err := Encrypt(&p.pubKey, shareKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to encryption for ed25519.\n\t%w", err)
 	}
 	senderSshPubKey, err := ssh.NewPublicKey(*tempPubKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to generate sender's ssh.PublicKey for ed25519.\n\t%w", err)
 	}
 	envelope := Envelope{
 		Type:          "ed25519",

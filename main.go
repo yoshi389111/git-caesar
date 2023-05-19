@@ -36,11 +36,11 @@ func main() {
 
 	} else {
 		if peerPubKeys == nil {
-			fmt.Fprintf(os.Stderr, "git-caesar: `-u` option missing\n")
+			fmt.Fprintf(os.Stderr, "`-u` option missing\n")
 			os.Exit(1)
 		}
 		if len(peerPubKeys) == 0 {
-			fmt.Fprintf(os.Stderr, "git-caesar: Recipient's public key not found.\n")
+			fmt.Fprintf(os.Stderr, "Recipient's public key not found.\n")
 			os.Exit(1)
 		}
 		outBytes, err = encrypt(peerPubKeys, prvKey, inBytes)

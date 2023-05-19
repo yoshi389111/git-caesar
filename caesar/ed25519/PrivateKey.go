@@ -3,6 +3,7 @@ package ed25519
 import (
 	"crypto/ed25519"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/yoshi389111/git-caesar/caesar"
 	"github.com/yoshi389111/git-caesar/caesar/authkeylib"
@@ -23,11 +24,11 @@ func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
 	envelopeEc := envelope.(Envelope)
 	ciphertext, err := base64.StdEncoding.DecodeString(envelopeEc.ShareKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to base64 decode `key` in envelope for ed25519.\n\t%w", err)
 	}
 	sshPubKey, err := authkeylib.ParseString(envelopeEc.TempAuthKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse `pubkey` in envelope for ed25519.\n\t%w", err)
 	}
 	pubKey := sshPubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(ed25519.PublicKey)
 	return Decrypt(&p.prvKey, &pubKey, ciphertext)
@@ -40,7 +41,7 @@ func (p PrivateKey) Sign(message []byte) ([]byte, error) {
 func (p PrivateKey) GetAuthKey() (string, error) {
 	sshPubKey, err := ssh.NewPublicKey(p.prvKey.Public())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to generate ssh.PublicKey for ed25519.\n\t%w", err)
 	}
 	return authkeylib.ToString(sshPubKey), nil
 }

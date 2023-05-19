@@ -9,11 +9,11 @@ import (
 func AppendZieEntry(zipWriter *zip.Writer, entryName string, entryBody []byte) error {
 	entryWriter, err := zipWriter.Create(entryName)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to generate ZipWriter.\n\t%w", err)
 	}
 	_, err = entryWriter.Write(entryBody)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to add entry to ZipWriter. name=`%s`\n\t%w", entryName, err)
 	}
 	return nil
 }
@@ -31,12 +31,12 @@ func ExtractZipEntry(zipReader *zip.Reader, fileName string) ([]byte, error) {
 	}
 	fileReader, err := targetFile.Open()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to open ZIP for read.\n\t%w", err)
 	}
 	defer fileReader.Close()
 	fileData, err := ioutil.ReadAll(fileReader)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read entries from ZIP.\n\t%w", err)
 	}
 	return fileData, nil
 }

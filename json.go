@@ -25,7 +25,7 @@ func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
 	var caesarJson CaesarJson
 	err := json.Unmarshal(bytes, &caesarJson)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse `caesar.json`.\n\t%w", err)
 	}
 	// replace `interface{}` with `Envelope`
 	for i, envelope := range caesarJson.Envelopes {
