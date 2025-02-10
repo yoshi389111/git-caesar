@@ -34,7 +34,9 @@ func toX25519PublicKey(edPubKey *ed25519.PublicKey) (*ecdh.PublicKey, error) {
 	u := numer.Mod(numer.Mul(numer, denomInv), p)
 
 	// convert to little-endian
-	littleEndianU := toReverse(u.Bytes())
+	littleEndianU := make([]byte, 32)
+	u.FillBytes(littleEndianU)
+	littleEndianU = toReverse(littleEndianU)
 
 	// create x25519 public key
 	return ecdh.X25519().NewPublicKey(littleEndianU)
