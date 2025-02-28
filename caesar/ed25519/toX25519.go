@@ -5,6 +5,8 @@ import (
 	"crypto/ed25519"
 	"crypto/sha512"
 	"math/big"
+
+	"errors"
 )
 
 func toX2519PrivateKey(edPrvKey *ed25519.PrivateKey) (*ecdh.PrivateKey, error) {
@@ -21,6 +23,10 @@ var p, _ = new(big.Int).SetString("7ffffffffffffffffffffffffffffffffffffffffffff
 var one = big.NewInt(1)
 
 func toX25519PublicKey(edPubKey *ed25519.PublicKey) (*ecdh.PublicKey, error) {
+	if len(*edPubKey) != ed25519.PublicKeySize {
+		return nil, errors.New("ed25519: bad public key length")
+	}
+
 	// convert to big-endian
 	bigEndianY := toReverse(*edPubKey)
 
