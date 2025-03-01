@@ -55,7 +55,7 @@ brews:
     description: "Encrypt/decrypt files passwordlessly using GitHub's public key."
     homepage: "https://github.com/yoshi389111/git-caesar"
     directory: Formula
-    tap:
+    repository:
       owner: yoshi389111
       name: homebrew-apps
     url_template: "https://github.com/yoshi389111/git-caesar/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
