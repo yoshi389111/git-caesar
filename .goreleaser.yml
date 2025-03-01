@@ -3,9 +3,6 @@
 # =============================================================================
 #  For local testing run:
 #    goreleaser --skip-publish --clean --snapshot
-env:
-  - GO111MODULE=on
-
 before:
   hooks:
     - go mod download
