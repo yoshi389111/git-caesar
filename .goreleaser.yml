@@ -3,6 +3,8 @@
 # =============================================================================
 #  For local testing run:
 #    goreleaser --skip-publish --clean --snapshot
+version: 2
+
 before:
   hooks:
     - go mod download
