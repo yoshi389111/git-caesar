@@ -2,7 +2,7 @@
 #  GoReleaser configuration file for git-caesar
 # =============================================================================
 #  For local testing run:
-#    goreleaser --skip-publish --clean --snapshot
+#    goreleaser --clean --snapshot --skip=publish
 version: 2
 
 before:
