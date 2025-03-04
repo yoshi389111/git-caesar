@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # required for the changelog of goreleaser to work correctly.
           fetch-depth: 0
@@ -41,7 +41,7 @@ jobs:
 
       # Build and release. Releases for homebrew as well.
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
           args: release --config .goreleaser.yml --clean
