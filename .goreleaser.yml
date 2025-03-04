@@ -2,9 +2,8 @@
 #  GoReleaser configuration file for git-caesar
 # =============================================================================
 #  For local testing run:
-#    goreleaser --skip-publish --clean --snapshot
-env:
-  - GO111MODULE=on
+#    goreleaser --clean --snapshot --skip=publish
+version: 2
 
 before:
   hooks:
@@ -54,8 +53,8 @@ brews:
     name: git-caesar
     description: "Encrypt/decrypt files passwordlessly using GitHub's public key."
     homepage: "https://github.com/yoshi389111/git-caesar"
-    folder: Formula
-    tap:
+    directory: Formula
+    repository:
       owner: yoshi389111
       name: homebrew-apps
     url_template: "https://github.com/yoshi389111/git-caesar/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
