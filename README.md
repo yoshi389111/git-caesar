@@ -6,7 +6,7 @@ This command encrypts and decrypts files using the public key registered on GitH
 
 ### How to build with GO command
 
-Requires go 1.20 or higher
+Requires go 1.23.0 or higher
 
 See below for how to install/upgrade.
 
