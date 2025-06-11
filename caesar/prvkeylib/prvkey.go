@@ -25,18 +25,18 @@ import (
 func GetPrvKey(filePath string) (caesar.PrivateKey, error) {
 	prvKeyBytes, err := ReadPrvKey(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load private key file.\n\t%w", err)
+		return nil, fmt.Errorf("failed to load private key file: %w", err)
 	}
 	prvKey, err := ParsePrvKey(prvKeyBytes)
 	if err != nil {
 		if _, ok := err.(*ssh.PassphraseMissingError); ok {
 			pass := readPassphrase()
 			if pass == "" {
-				return nil, errors.New("No passphrase entered.")
+				return nil, errors.New("no passphrase entered")
 			}
 			prvKey, err = ParsePrvKeyWithPass(prvKeyBytes, pass)
 		}
-		return nil, fmt.Errorf("Failed to parse private key.\n\t%w", err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 	return prvKey, nil
 }
@@ -62,11 +62,11 @@ func ReadPrvKey(filePath string) ([]byte, error) {
 func SearchPrvKey() ([]byte, error) {
 	usr, err := user.Current()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get home directory.\n\t%w", err)
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
 	}
 	sshDir := filepath.Join(usr.HomeDir, ".ssh")
 	if !iolib.ExistsFile(sshDir) {
-		return nil, fmt.Errorf("`%s` does not exist.\n\t%w", sshDir, err)
+		return nil, fmt.Errorf("`%s` does not exist: %w", sshDir, err)
 	}
 
 	// search order (ref. man ssh)
@@ -84,7 +84,7 @@ func SearchPrvKey() ([]byte, error) {
 			return iolib.ReadFile(filePath)
 		}
 	}
-	return nil, errors.New("Default private keys could not be found.")
+	return nil, errors.New("default private keys could not be found")
 }
 
 func ParsePrvKey(bytes []byte) (caesar.PrivateKey, error) {
@@ -116,6 +116,6 @@ func toCaesarPrivateKey(key interface{}) (caesar.PrivateKey, error) {
 		prvKey := key.(*ed25519.PrivateKey)
 		return ed.NewPrivateKey(*prvKey), nil
 	default:
-		return nil, fmt.Errorf("`%T` type is not supported.", k)
+		return nil, fmt.Errorf("`%T` type is not supported", k)
 	}
 }

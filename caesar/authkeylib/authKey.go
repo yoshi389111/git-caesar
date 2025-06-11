@@ -11,7 +11,7 @@ func ParseAuthKeys(bytes []byte) ([]ssh.PublicKey, error) {
 	for len(bytes) > 0 {
 		sshPubKey, _, _, rest, err := ssh.ParseAuthorizedKey(bytes)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse authentication key. key=`%s`\n\t%w", string(bytes), err)
+			return nil, fmt.Errorf("failed to parse authentication key: key=`%s`: %w", string(bytes), err)
 		}
 		sshPubKeys = append(sshPubKeys, sshPubKey)
 		bytes = rest
@@ -22,7 +22,7 @@ func ParseAuthKeys(bytes []byte) ([]ssh.PublicKey, error) {
 func ParseString(authKey string) (ssh.PublicKey, error) {
 	sshPubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(authKey))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse authentication key string. key=`%s`\n\t%w", authKey, err)
+		return nil, fmt.Errorf("failed to parse authentication key string: key=`%s`: %w", authKey, err)
 	}
 	return sshPubKey, nil
 }

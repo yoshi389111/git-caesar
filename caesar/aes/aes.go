@@ -20,13 +20,13 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 	// generate initialization vector (IV)
 	_, err := rand.Read(iv)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate IV.\n\t%s", err)
+		return nil, fmt.Errorf("failed to generate IV: %w", err)
 	}
 
 	// encrypt message (AES-CBC)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create AES cipher block for encryption.\n\t%s", err)
+		return nil, fmt.Errorf("failed to create AES cipher block for encryption: %w", err)
 	}
 	cbc := cipher.NewCBCEncrypter(block, iv)
 	cbc.CryptBlocks(encMsg, padtext)
@@ -42,7 +42,7 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 	// create an decrypter in CBC mode
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create AES cipher block for decryption.\n\t%s", err)
+		return nil, fmt.Errorf("failed to create AES cipher block for decryption: %w", err)
 	}
 	cbc := cipher.NewCBCDecrypter(block, iv)
 

@@ -25,7 +25,7 @@ func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
 	var caesarJson CaesarJson
 	err := json.Unmarshal(bytes, &caesarJson)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse `caesar.json`.\n\t%w", err)
+		return nil, fmt.Errorf("failed to parse `caesar.json`: %w", err)
 	}
 	// replace `interface{}` with `Envelope`
 	for i, envelope := range caesarJson.Envelopes {
@@ -41,7 +41,7 @@ func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
 			caesarJson.Envelopes[i] = ed25519.Unmarshal(envelopeMap)
 
 		default:
-			return nil, fmt.Errorf("Unknown envelope type `%s`", t)
+			return nil, fmt.Errorf("unknown envelope type `%s`", t)
 		}
 	}
 

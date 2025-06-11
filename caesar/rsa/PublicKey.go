@@ -25,7 +25,7 @@ func NewPublicKey(pubKey rsa.PublicKey, sshPubKey ssh.PublicKey) *PublicKey {
 func (p PublicKey) NewEnvelope(shareKey []byte) (caesar.Envelope, error) {
 	ciphertext, err := Encrypt(&p.pubKey, shareKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to encryption for rsa.\n\t%w", err)
+		return nil, fmt.Errorf("failed to encryption for rsa: %w", err)
 	}
 	envelope := Envelope{
 		Type:          "rsa",

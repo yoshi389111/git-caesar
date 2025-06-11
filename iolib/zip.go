@@ -9,11 +9,11 @@ import (
 func AppendZieEntry(zipWriter *zip.Writer, entryName string, entryBody []byte) error {
 	entryWriter, err := zipWriter.Create(entryName)
 	if err != nil {
-		return fmt.Errorf("Failed to generate ZipWriter.\n\t%w", err)
+		return fmt.Errorf("failed to generate ZipWriter: %w", err)
 	}
 	_, err = entryWriter.Write(entryBody)
 	if err != nil {
-		return fmt.Errorf("Failed to add entry to ZipWriter. name=`%s`\n\t%w", entryName, err)
+		return fmt.Errorf("failed to add entry to ZipWriter: name=`%s`: %w", entryName, err)
 	}
 	return nil
 }
@@ -27,16 +27,16 @@ func ExtractZipEntry(zipReader *zip.Reader, fileName string) ([]byte, error) {
 		}
 	}
 	if targetFile == nil {
-		return nil, fmt.Errorf("`%s` not found.", fileName)
+		return nil, fmt.Errorf("`%s` not found", fileName)
 	}
 	fileReader, err := targetFile.Open()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open ZIP for read.\n\t%w", err)
+		return nil, fmt.Errorf("failed to open ZIP for read: %w", err)
 	}
 	defer fileReader.Close()
 	fileData, err := io.ReadAll(fileReader)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read entries from ZIP.\n\t%w", err)
+		return nil, fmt.Errorf("failed to read entries from ZIP: %w", err)
 	}
 	return fileData, nil
 }

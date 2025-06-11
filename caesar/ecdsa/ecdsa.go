@@ -17,7 +17,7 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 	// generate temporary private key
 	tempPrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to generate ephemeral key pair for ecdsa.\n\t%w", err)
+		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ecdsa: %w", err)
 	}
 
 	// key exchange
@@ -27,7 +27,7 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 	// encrypt AES-256-CBC
 	ciphertext, err := aes.Encrypt(sharedKey[:], message)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to AES encryption for ecdsa.\n\t%w", err)
+		return nil, nil, fmt.Errorf("failed to AES encryption for ecdsa: %w", err)
 	}
 	return ciphertext, &tempPrvKey.PublicKey, nil
 }
@@ -51,11 +51,11 @@ func Sign(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	hash := sha256.Sum256(message)
 	r, s, err := ecdsa.Sign(rand.Reader, prvKey, hash[:])
 	if err != nil {
-		return nil, fmt.Errorf("Failed to sign ecdsa.\n\t%w", err)
+		return nil, fmt.Errorf("failed to sign ecdsa: %w", err)
 	}
 	sig, err := asn1.Marshal(sigParam{R: r, S: s})
 	if err != nil {
-		return nil, fmt.Errorf("Failed to ecdsa signature marshalling.\n\t%w", err)
+		return nil, fmt.Errorf("failed to ecdsa signature marshalling: %w", err)
 	}
 	return sig, nil
 }
