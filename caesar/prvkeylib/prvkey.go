@@ -111,14 +111,11 @@ func ParsePrvKeyWithPass(bytes []byte, passphrase string) (caesar.PrivateKey, er
 func toCaesarPrivateKey(key interface{}) (caesar.PrivateKey, error) {
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
-		prvKey := key.(*rsa.PrivateKey)
-		return rs.NewPrivateKey(*prvKey), nil
+		return rs.NewPrivateKey(*k), nil
 	case *ecdsa.PrivateKey:
-		prvKey := key.(*ecdsa.PrivateKey)
-		return ec.NewPrivateKey(*prvKey), nil
+		return ec.NewPrivateKey(*k), nil
 	case *ed25519.PrivateKey:
-		prvKey := key.(*ed25519.PrivateKey)
-		return ed.NewPrivateKey(*prvKey), nil
+		return ed.NewPrivateKey(*k), nil
 	default:
 		return nil, fmt.Errorf("`%T` type is not supported", k)
 	}

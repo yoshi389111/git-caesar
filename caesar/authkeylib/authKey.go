@@ -6,19 +6,21 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func ParseAuthKeys(bytes []byte) ([]ssh.PublicKey, error) {
+// ParseAuthKeys parses multiple SSH public keys from a byte slice (octets) in authorized_keys format.
+func ParseAuthKeys(octets []byte) ([]ssh.PublicKey, error) {
 	var sshPubKeys []ssh.PublicKey
-	for len(bytes) > 0 {
-		sshPubKey, _, _, rest, err := ssh.ParseAuthorizedKey(bytes)
+	for len(octets) > 0 {
+		sshPubKey, _, _, rest, err := ssh.ParseAuthorizedKey(octets)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse authentication key: key=`%s`: %w", string(bytes), err)
+			return nil, fmt.Errorf("failed to parse authentication key: key=`%s`: %w", string(octets), err)
 		}
 		sshPubKeys = append(sshPubKeys, sshPubKey)
-		bytes = rest
+		octets = rest
 	}
 	return sshPubKeys, nil
 }
 
+// ParseString parses a single SSH public key from a string in authorized_keys format.
 func ParseString(authKey string) (ssh.PublicKey, error) {
 	sshPubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(authKey))
 	if err != nil {
@@ -27,6 +29,7 @@ func ParseString(authKey string) (ssh.PublicKey, error) {
 	return sshPubKey, nil
 }
 
+// ToString converts an ssh.PublicKey to the authorized_keys string format.
 func ToString(sshPubKey ssh.PublicKey) string {
 	return string(ssh.MarshalAuthorizedKey(sshPubKey))
 }

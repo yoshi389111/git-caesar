@@ -21,7 +21,10 @@ func NewPrivateKey(prvKey ed25519.PrivateKey) *PrivateKey {
 }
 
 func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
-	envelopeEc := envelope.(Envelope)
+	envelopeEc, ok := envelope.(Envelope)
+	if !ok {
+		return nil, fmt.Errorf("envelope is not of type ed25519.Envelope")
+	}
 	ciphertext, err := base64.StdEncoding.DecodeString(envelopeEc.ShareKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode `key` in envelope for ed25519: %w", err)
@@ -30,7 +33,14 @@ func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse `pubkey` in envelope for ed25519: %w", err)
 	}
-	pubKey := sshPubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(ed25519.PublicKey)
+	cryptoPubKey, ok := sshPubKey.(ssh.CryptoPublicKey)
+	if !ok {
+		return nil, fmt.Errorf("parsed pubkey is not ssh.CryptoPublicKey")
+	}
+	pubKey, ok := cryptoPubKey.CryptoPublicKey().(ed25519.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("crypto public key is not ed25519.PublicKey")
+	}
 	return Decrypt(&p.prvKey, &pubKey, ciphertext)
 }
 

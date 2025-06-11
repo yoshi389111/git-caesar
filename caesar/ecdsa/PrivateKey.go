@@ -21,7 +21,10 @@ func NewPrivateKey(prvKey ecdsa.PrivateKey) *PrivateKey {
 }
 
 func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
-	envelopeEc := envelope.(Envelope)
+	envelopeEc, ok := envelope.(Envelope)
+	if !ok {
+		return nil, fmt.Errorf("envelope is not of type ecdsa.Envelope")
+	}
 	ciphertext, err := base64.StdEncoding.DecodeString(envelopeEc.ShareKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode `key` in envelope for ecdsa: %w", err)
@@ -30,7 +33,14 @@ func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse `pubkey` in envelope for ecdsa: %w", err)
 	}
-	pubKey := sshPubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*ecdsa.PublicKey)
+	cryptoPubKey, ok := sshPubKey.(ssh.CryptoPublicKey)
+	if !ok {
+		return nil, fmt.Errorf("parsed pubkey is not ssh.CryptoPublicKey")
+	}
+	pubKey, ok := cryptoPubKey.CryptoPublicKey().(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("crypto public key is not *ecdsa.PublicKey")
+	}
 	return Decrypt(&p.prvKey, pubKey, ciphertext)
 }
 

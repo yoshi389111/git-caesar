@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-func AppendZieEntry(zipWriter *zip.Writer, entryName string, entryBody []byte) error {
+func AppendZipEntry(zipWriter *zip.Writer, entryName string, entryBody []byte) error {
 	entryWriter, err := zipWriter.Create(entryName)
 	if err != nil {
 		return fmt.Errorf("failed to generate ZipWriter: %w", err)

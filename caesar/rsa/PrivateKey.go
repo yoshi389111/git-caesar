@@ -21,7 +21,10 @@ func NewPrivateKey(prvKey rsa.PrivateKey) *PrivateKey {
 }
 
 func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
-	envelopeRsa := envelope.(Envelope)
+	envelopeRsa, ok := envelope.(Envelope)
+	if !ok {
+		return nil, fmt.Errorf("envelope is not of type rsa.Envelope")
+	}
 	ciphertext, err := base64.StdEncoding.DecodeString(envelopeRsa.ShareKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode `key` in envelope for rsa: %w", err)

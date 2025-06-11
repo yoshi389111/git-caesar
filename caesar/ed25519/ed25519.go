@@ -21,13 +21,13 @@ func Encrypt(otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.P
 	// convert ed25519 public key to x25519 public key
 	xOtherPubKey, err := toX25519PublicKey(otherPubKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to convert X25519 to public key: %w", err)
+		return nil, nil, fmt.Errorf("failed to convert ed25519 public key to X25519 public key: %w", err)
 	}
 
-	// convert ed25519 prevate key to x25519 prevate key
-	xPrvKey, err := toX2519PrivateKey(&tempEdPrvKey)
+	// convert ed25519 private key to x25519 private key
+	xPrvKey, err := toX25519PrivateKey(&tempEdPrvKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to convert X25519 to private key: %w", err)
+		return nil, nil, fmt.Errorf("failed to convert ed25519 private key to X25519 private key: %w", err)
 	}
 
 	// key exchange
@@ -49,13 +49,13 @@ func Decrypt(prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphert
 	// convert ed25519 public key to x25519 public key
 	xOtherPubKey, err := toX25519PublicKey(otherPubKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert X25519 to public key: %w", err)
+		return nil, fmt.Errorf("failed to convert ed25519 public key to X25519 public key: %w", err)
 	}
 
-	// convert ed25519 prevate key to x25519 prevate key
-	xPrvKey, err := toX2519PrivateKey(prvKey)
+	// convert ed25519 private key to x25519 private key
+	xPrvKey, err := toX25519PrivateKey(prvKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert X25519 to private key: %w", err)
+		return nil, fmt.Errorf("failed to convert ed25519 private key to X25519 private key: %w", err)
 	}
 
 	// key exchange

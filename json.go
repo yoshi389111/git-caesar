@@ -29,21 +29,24 @@ func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
 	}
 	// replace `interface{}` with `Envelope`
 	for i, envelope := range caesarJson.Envelopes {
-		envelopeMap := envelope.(map[string]interface{})
-		switch t := envelopeMap["type"].(string); t {
+		envelopeMap, ok := envelope.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid envelope format in caesar.json")
+		}
+		t, ok := envelopeMap["type"].(string)
+		if !ok {
+			return nil, fmt.Errorf("envelope type is missing or not a string")
+		}
+		switch t {
 		case "rsa":
 			caesarJson.Envelopes[i] = rsa.Unmarshal(envelopeMap)
-
 		case "ecdsa":
 			caesarJson.Envelopes[i] = ecdsa.Unmarshal(envelopeMap)
-
 		case "ed25519":
 			caesarJson.Envelopes[i] = ed25519.Unmarshal(envelopeMap)
-
 		default:
 			return nil, fmt.Errorf("unknown envelope type `%s`", t)
 		}
 	}
-
 	return &caesarJson, nil
 }

@@ -74,7 +74,10 @@ func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	}
 	var targetEnvelope caesar.Envelope
 	for _, rawEnvelope := range caesarJson.Envelopes {
-		envelope := rawEnvelope.(caesar.Envelope)
+		envelope, ok := rawEnvelope.(caesar.Envelope)
+		if !ok {
+			return nil, fmt.Errorf("invalid envelope type in caesar.json")
+		}
 		if envelope.GetDest() == selfAuthKey {
 			targetEnvelope = envelope
 			break

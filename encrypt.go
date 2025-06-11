@@ -63,16 +63,13 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	// create zip data
 	zipBuf := new(bytes.Buffer)
 	zipWriter := zip.NewWriter(zipBuf)
-	err = iolib.AppendZieEntry(zipWriter, CAESAR_JSON, jsonBytes)
-	if err != nil {
+	if err := iolib.AppendZipEntry(zipWriter, CAESAR_JSON, jsonBytes); err != nil {
 		return nil, fmt.Errorf("failed to add `caesar.json` entry to ZIP file: %w", err)
 	}
-	err = iolib.AppendZieEntry(zipWriter, CAESAR_CIPHER, ciphertext)
-	if err != nil {
+	if err := iolib.AppendZipEntry(zipWriter, CAESAR_CIPHER, ciphertext); err != nil {
 		return nil, fmt.Errorf("failed to add `caesar.cipher` entry to ZIP file: %w", err)
 	}
-	err = zipWriter.Close()
-	if err != nil {
+	if err := zipWriter.Close(); err != nil {
 		return nil, fmt.Errorf("failed to create ZIP file: %w", err)
 	}
 	zipBytes := zipBuf.Bytes()
