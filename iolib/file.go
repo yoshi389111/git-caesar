@@ -2,7 +2,7 @@ package iolib
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -20,7 +20,7 @@ func ReadInputFile(filePath string) ([]byte, error) {
 }
 
 func ReadFile(filePath string) ([]byte, error) {
-	bytes, err := ioutil.ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read `%s`: %w", filePath, err)
 	}
@@ -28,7 +28,7 @@ func ReadFile(filePath string) ([]byte, error) {
 }
 
 func ReadStdin() ([]byte, error) {
-	bytes, err := ioutil.ReadAll(os.Stdin)
+	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read stdin: %w", err)
 	}
@@ -44,7 +44,7 @@ func WriteOutputFile(filePath string, bytes []byte) error {
 }
 
 func WriteFile(filePath string, bytes []byte) error {
-	err := ioutil.WriteFile(filePath, bytes, 0644)
+	err := os.WriteFile(filePath, bytes, 0644)
 	if err != nil {
 		return fmt.Errorf("Failed to write `%s`.\n\t%w", filePath, err)
 	}

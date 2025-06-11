@@ -2,7 +2,7 @@ package iolib
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -12,5 +12,5 @@ func FetchContent(uri string) ([]byte, error) {
 		return nil, fmt.Errorf("Failed to get http. URL=`%s`\n\t%w", uri, err)
 	}
 	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

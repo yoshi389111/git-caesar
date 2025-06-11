@@ -3,7 +3,7 @@ package iolib
 import (
 	"archive/zip"
 	"fmt"
-	"io/ioutil"
+	"io"
 )
 
 func AppendZieEntry(zipWriter *zip.Writer, entryName string, entryBody []byte) error {
@@ -34,7 +34,7 @@ func ExtractZipEntry(zipReader *zip.Reader, fileName string) ([]byte, error) {
 		return nil, fmt.Errorf("Failed to open ZIP for read.\n\t%w", err)
 	}
 	defer fileReader.Close()
-	fileData, err := ioutil.ReadAll(fileReader)
+	fileData, err := io.ReadAll(fileReader)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read entries from ZIP.\n\t%w", err)
 	}

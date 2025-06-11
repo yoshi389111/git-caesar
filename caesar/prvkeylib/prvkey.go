@@ -16,7 +16,7 @@ import (
 	rs "github.com/yoshi389111/git-caesar/caesar/rsa"
 	"github.com/yoshi389111/git-caesar/iolib"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // Get the private key from the specified file path.
@@ -42,11 +42,11 @@ func GetPrvKey(filePath string) (caesar.PrivateKey, error) {
 }
 
 func readPassphrase() string {
-	if !terminal.IsTerminal(int(os.Stdin.Fd())) {
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
 		return ""
 	}
 	fmt.Fprint(os.Stderr, "Enter passphrase: ")
-	bytePassword, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+	bytePassword, _ := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Fprintln(os.Stderr, "")
 	return string(bytePassword)
 }
