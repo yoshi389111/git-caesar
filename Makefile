@@ -15,3 +15,7 @@ build: ## Build
 test: ## Unit test
 	go test ./... --count=1 -v
 .PHONY: test
+
+roundtrip: ## Roundtrip test
+	./roundtrip.sh
+.PHONY: roundtrip
