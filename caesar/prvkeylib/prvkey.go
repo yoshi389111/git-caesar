@@ -35,6 +35,10 @@ func GetPrvKey(filePath string) (caesar.PrivateKey, error) {
 				return nil, errors.New("no passphrase entered")
 			}
 			prvKey, err = ParsePrvKeyWithPass(prvKeyBytes, pass)
+			if err == nil {
+				return prvKey, nil
+			}
+			return nil, fmt.Errorf("failed to parse private key with passphrase: %w", err)
 		}
 		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
