@@ -39,7 +39,11 @@ func ParseAuthKey(authKey string) (caesar.PublicKey, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse authentication key: authKey=`%s`: %w", authKey, err)
 	}
-	return ToCaesarPubKey(sshPubKey), nil
+	pubKey := ToCaesarPubKey(sshPubKey)
+	if pubKey == nil {
+		return nil, fmt.Errorf("unsupported or invalid public key: authKey=`%s`", authKey)
+	}
+	return pubKey, nil
 }
 
 func GetPubKeys(target string) ([]caesar.PublicKey, error) {
@@ -60,30 +64,21 @@ func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 
 	pubKeyList := make([]caesar.PublicKey, 0)
 	for _, sshPubKey := range sshPubKeys {
-		sshCryptoPubKey, ok := sshPubKey.(ssh.CryptoPublicKey)
-		if !ok {
-			continue
-		}
-		cryptoPubKey := sshCryptoPubKey.CryptoPublicKey()
-		if rsaPubKey, ok := cryptoPubKey.(*rsa.PublicKey); ok {
-			if 1024 <= rsaPubKey.N.BitLen() {
-				pubKeyList = append(pubKeyList, rs.NewPublicKey(*rsaPubKey, sshPubKey))
-			}
-		} else if ecdsaPubKey, ok := cryptoPubKey.(*ecdsa.PublicKey); ok {
-			pubKeyList = append(pubKeyList, ec.NewPublicKey(*ecdsaPubKey, sshPubKey))
-		} else if ed25519PubKey, ok := cryptoPubKey.(ed25519.PublicKey); ok {
-			pubKeyList = append(pubKeyList, ed.NewPublicKey(ed25519PubKey, sshPubKey))
+		pubKey := ToCaesarPubKey(sshPubKey)
+		if pubKey != nil {
+			pubKeyList = append(pubKeyList, pubKey)
 		}
 	}
 	return pubKeyList, nil
 }
 
+// readTarget retrieves public key data depending on whether the target is a URL, GitHub account, or file path.
 func readTarget(target string) ([]byte, error) {
 	if strings.HasPrefix(target, "http:") || strings.HasPrefix(target, "https:") {
 		// uri
 		return iolib.FetchContent(target)
 	} else if IsGithubAccount(target) {
-		// account name of GitHub
+		// GitHub account name
 		uri := fmt.Sprintf("https://github.com/%s.keys", target)
 		return iolib.FetchContent(uri)
 	} else {
