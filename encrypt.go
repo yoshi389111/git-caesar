@@ -19,7 +19,7 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	shareKey := make([]byte, 32)
 	_, err := rand.Read(shareKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get random number (shared key).\n\t%w", err)
+		return nil, fmt.Errorf("failed to get random number (shared key): %w", err)
 	}
 
 	// encrypt shared key per public key
@@ -27,7 +27,7 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	for _, peerPubKey := range peerPubKeys {
 		envelope, err := peerPubKey.NewEnvelope(shareKey)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to create envelope.\n\t%w", err)
+			return nil, fmt.Errorf("failed to create envelope: %w", err)
 		}
 		envelopes = append(envelopes, envelope)
 	}
@@ -35,19 +35,19 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	// encrypt the plaintext (by AES-256-CBC)
 	ciphertext, err := aes.Encrypt(shareKey, plaintext)
 	if err != nil {
-		return nil, fmt.Errorf("AES encryption failed.\n\t%w", err)
+		return nil, fmt.Errorf("AES encryption failed: %w", err)
 	}
 
 	// sign the ciphertext
 	sig, err := prvKey.Sign(ciphertext)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to sign.\n\t%w", err)
+		return nil, fmt.Errorf("failed to sign: %w", err)
 	}
 
 	// create `caesar.json`
 	selfAuthKey, err := prvKey.GetAuthKey()
 	if err != nil {
-		return nil, fmt.Errorf("The authentication key could not be obtained from the private key during encryption.\n\t%w", err)
+		return nil, fmt.Errorf("the authentication key could not be obtained from the private key during encryption: %w", err)
 	}
 	caesarJson := &CaesarJson{
 		Version:   "1",
@@ -57,23 +57,20 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	}
 	jsonBytes, err := json.Marshal(caesarJson)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal `caesar.json`.\n\t%w", err)
+		return nil, fmt.Errorf("failed to marshal `caesar.json`: %w", err)
 	}
 
 	// create zip data
 	zipBuf := new(bytes.Buffer)
 	zipWriter := zip.NewWriter(zipBuf)
-	err = iolib.AppendZieEntry(zipWriter, CAESAR_JSON, jsonBytes)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to add `caesar.json` entry to ZIP file.\n\t%w", err)
+	if err := iolib.AppendZipEntry(zipWriter, CAESAR_JSON, jsonBytes); err != nil {
+		return nil, fmt.Errorf("failed to add `caesar.json` entry to ZIP file: %w", err)
 	}
-	err = iolib.AppendZieEntry(zipWriter, CAESAR_CIPHER, ciphertext)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to add `caesar.cipher` entry to ZIP file.\n\t%w", err)
+	if err := iolib.AppendZipEntry(zipWriter, CAESAR_CIPHER, ciphertext); err != nil {
+		return nil, fmt.Errorf("failed to add `caesar.cipher` entry to ZIP file: %w", err)
 	}
-	err = zipWriter.Close()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create ZIP file.\n\t%w", err)
+	if err := zipWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to create ZIP file: %w", err)
 	}
 	zipBytes := zipBuf.Bytes()
 

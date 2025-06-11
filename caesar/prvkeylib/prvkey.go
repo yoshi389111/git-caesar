@@ -16,7 +16,7 @@ import (
 	rs "github.com/yoshi389111/git-caesar/caesar/rsa"
 	"github.com/yoshi389111/git-caesar/iolib"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // Get the private key from the specified file path.
@@ -25,28 +25,32 @@ import (
 func GetPrvKey(filePath string) (caesar.PrivateKey, error) {
 	prvKeyBytes, err := ReadPrvKey(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load private key file.\n\t%w", err)
+		return nil, fmt.Errorf("failed to load private key file: %w", err)
 	}
 	prvKey, err := ParsePrvKey(prvKeyBytes)
 	if err != nil {
 		if _, ok := err.(*ssh.PassphraseMissingError); ok {
 			pass := readPassphrase()
 			if pass == "" {
-				return nil, errors.New("No passphrase entered.")
+				return nil, errors.New("no passphrase entered")
 			}
 			prvKey, err = ParsePrvKeyWithPass(prvKeyBytes, pass)
+			if err == nil {
+				return prvKey, nil
+			}
+			return nil, fmt.Errorf("failed to parse private key with passphrase: %w", err)
 		}
-		return nil, fmt.Errorf("Failed to parse private key.\n\t%w", err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 	return prvKey, nil
 }
 
 func readPassphrase() string {
-	if !terminal.IsTerminal(int(os.Stdin.Fd())) {
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
 		return ""
 	}
 	fmt.Fprint(os.Stderr, "Enter passphrase: ")
-	bytePassword, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+	bytePassword, _ := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Fprintln(os.Stderr, "")
 	return string(bytePassword)
 }
@@ -62,11 +66,11 @@ func ReadPrvKey(filePath string) ([]byte, error) {
 func SearchPrvKey() ([]byte, error) {
 	usr, err := user.Current()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get home directory.\n\t%w", err)
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
 	}
 	sshDir := filepath.Join(usr.HomeDir, ".ssh")
 	if !iolib.ExistsFile(sshDir) {
-		return nil, fmt.Errorf("`%s` does not exist.\n\t%w", sshDir, err)
+		return nil, fmt.Errorf("`%s` does not exist: %w", sshDir, err)
 	}
 
 	// search order (ref. man ssh)
@@ -84,7 +88,7 @@ func SearchPrvKey() ([]byte, error) {
 			return iolib.ReadFile(filePath)
 		}
 	}
-	return nil, errors.New("Default private keys could not be found.")
+	return nil, errors.New("default private keys could not be found")
 }
 
 func ParsePrvKey(bytes []byte) (caesar.PrivateKey, error) {
@@ -107,15 +111,12 @@ func ParsePrvKeyWithPass(bytes []byte, passphrase string) (caesar.PrivateKey, er
 func toCaesarPrivateKey(key interface{}) (caesar.PrivateKey, error) {
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
-		prvKey := key.(*rsa.PrivateKey)
-		return rs.NewPrivateKey(*prvKey), nil
+		return rs.NewPrivateKey(*k), nil
 	case *ecdsa.PrivateKey:
-		prvKey := key.(*ecdsa.PrivateKey)
-		return ec.NewPrivateKey(*prvKey), nil
+		return ec.NewPrivateKey(*k), nil
 	case *ed25519.PrivateKey:
-		prvKey := key.(*ed25519.PrivateKey)
-		return ed.NewPrivateKey(*prvKey), nil
+		return ed.NewPrivateKey(*k), nil
 	default:
-		return nil, fmt.Errorf("`%T` type is not supported.", k)
+		return nil, fmt.Errorf("`%T` type is not supported", k)
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var githubAccountRe = regexp.MustCompile(`^[a-zA-Z\d]([a-zA-Z\d-]{0,37}[a-zA-Z\d])?$`)
+
 func IsGithubAccount(str string) bool {
 	// GitHub account name validation in current
 	//
@@ -20,6 +22,5 @@ func IsGithubAccount(str string) bool {
 	if strings.Contains(str, "--") {
 		return false
 	}
-	re := regexp.MustCompile(`^[a-zA-Z\d]([a-zA-Z\d-]{0,37}[a-zA-Z\d])?$`)
-	return re.MatchString(str)
+	return githubAccountRe.MatchString(str)
 }

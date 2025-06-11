@@ -31,9 +31,9 @@ func main() {
 	if opts.Decrypt {
 		outBytes, err = decrypt(peerPubKeys, prvKey, inBytes)
 		if err != nil {
-			panic(err)
+			fmt.Fprintf(os.Stderr, "decrypt error: %v\n", err)
+			os.Exit(1)
 		}
-
 	} else {
 		if peerPubKeys == nil {
 			fmt.Fprintf(os.Stderr, "`-u` option missing\n")
@@ -45,12 +45,14 @@ func main() {
 		}
 		outBytes, err = encrypt(peerPubKeys, prvKey, inBytes)
 		if err != nil {
-			panic(err)
+			fmt.Fprintf(os.Stderr, "encrypt error: %v\n", err)
+			os.Exit(1)
 		}
 	}
 
 	err = iolib.WriteOutputFile(opts.OutputPath, outBytes)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "write error: %v\n", err)
+		os.Exit(1)
 	}
 }

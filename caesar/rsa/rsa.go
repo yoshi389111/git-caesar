@@ -17,7 +17,7 @@ func Decrypt(prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 
 func Sign(prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	hash := sha256.Sum256(message)
-	return rsa.SignPKCS1v15(rand.Reader, prvKey, crypto.SHA256, hash[:])
+	return rsa.SignPKCS1v15(nil, prvKey, crypto.SHA256, hash[:])
 }
 
 func Verify(pubKey *rsa.PublicKey, message, sig []byte) bool {

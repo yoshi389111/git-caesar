@@ -20,13 +20,13 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 	// generate initialization vector (IV)
 	_, err := rand.Read(iv)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate IV.\n\t%s", err)
+		return nil, fmt.Errorf("failed to generate IV: %w", err)
 	}
 
 	// encrypt message (AES-CBC)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create AES cipher block for encryption.\n\t%s", err)
+		return nil, fmt.Errorf("failed to create AES cipher block for encryption: %w", err)
 	}
 	cbc := cipher.NewCBCEncrypter(block, iv)
 	cbc.CryptBlocks(encMsg, padtext)
@@ -35,23 +35,44 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 }
 
 func Decrypt(key, ciphertext []byte) ([]byte, error) {
-	// extract the initial vector (IV)
+	// Check if ciphertext is long enough to contain an IV
+	if len(ciphertext) < aes.BlockSize {
+		return nil, fmt.Errorf("ciphertext too short")
+	}
+	// Extract the initialization vector (IV) from the beginning of the ciphertext
 	iv := ciphertext[:aes.BlockSize]
 	encMsg := ciphertext[aes.BlockSize:]
 
-	// create an decrypter in CBC mode
+	// Create a new AES cipher block for decryption in CBC mode
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create AES cipher block for decryption.\n\t%s", err)
+		return nil, fmt.Errorf("failed to create AES cipher block for decryption: %w", err)
 	}
 	cbc := cipher.NewCBCDecrypter(block, iv)
 
-	// decrypt ciphertext
+	// Decrypt the ciphertext
 	msgLen := len(encMsg)
+	if msgLen%aes.BlockSize != 0 {
+		return nil, fmt.Errorf("ciphertext is not a multiple of the block size")
+	}
 	decMsg := make([]byte, msgLen)
 	cbc.CryptBlocks(decMsg, encMsg)
 
-	// Unpad the message with PKCS#7
-	plaintext := decMsg[:msgLen-int(decMsg[msgLen-1])]
+	// Unpad the message using PKCS#7
+	if msgLen == 0 {
+		return nil, fmt.Errorf("decrypted message is empty")
+	}
+	padding := int(decMsg[msgLen-1])
+	// Check if the padding size is valid
+	if padding == 0 || padding > aes.BlockSize {
+		return nil, fmt.Errorf("invalid padding size")
+	}
+	// Validate PKCS#7 padding bytes
+	for i := range padding {
+		if decMsg[msgLen-1-i] != byte(padding) {
+			return nil, fmt.Errorf("invalid PKCS#7 padding")
+		}
+	}
+	plaintext := decMsg[:msgLen-padding]
 	return plaintext, nil
 }

@@ -9,7 +9,7 @@ import (
 	"errors"
 )
 
-func toX2519PrivateKey(edPrvKey *ed25519.PrivateKey) (*ecdh.PrivateKey, error) {
+func toX25519PrivateKey(edPrvKey *ed25519.PrivateKey) (*ecdh.PrivateKey, error) {
 	key := sha512.Sum512(edPrvKey.Seed())
 	// ref. crypto/ecdh/x25519.go#L90_92
 	// key[0] &= 248

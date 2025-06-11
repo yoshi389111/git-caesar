@@ -72,6 +72,9 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 	}
 
 	decrypted, err := ed25519PrvKey.ExtractShareKey(addInfo)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !bytes.Equal(message, decrypted) {
 		t.Fatal(hex.Dump(decrypted))
 	}
