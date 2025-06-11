@@ -65,12 +65,12 @@ func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 			continue
 		}
 		cryptoPubKey := sshCryptoPubKey.CryptoPublicKey()
-		if rsaPubKey, ok := cryptoPubKey.(rsa.PublicKey); ok {
+		if rsaPubKey, ok := cryptoPubKey.(*rsa.PublicKey); ok {
 			if 1024 <= rsaPubKey.N.BitLen() {
-				pubKeyList = append(pubKeyList, rs.NewPublicKey(rsaPubKey, sshPubKey))
+				pubKeyList = append(pubKeyList, rs.NewPublicKey(*rsaPubKey, sshPubKey))
 			}
-		} else if ecdsaPubKey, ok := cryptoPubKey.(ecdsa.PublicKey); ok {
-			pubKeyList = append(pubKeyList, ec.NewPublicKey(ecdsaPubKey, sshPubKey))
+		} else if ecdsaPubKey, ok := cryptoPubKey.(*ecdsa.PublicKey); ok {
+			pubKeyList = append(pubKeyList, ec.NewPublicKey(*ecdsaPubKey, sshPubKey))
 		} else if ed25519PubKey, ok := cryptoPubKey.(ed25519.PublicKey); ok {
 			pubKeyList = append(pubKeyList, ed.NewPublicKey(ed25519PubKey, sshPubKey))
 		}
