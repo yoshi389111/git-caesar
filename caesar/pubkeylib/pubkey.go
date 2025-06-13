@@ -52,12 +52,12 @@ func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 		return nil, nil
 	}
 
-	bytes, err := readTarget(target)
+	rawContent, err := readTarget(target)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get public key: target=`%s`: %w", target, err)
 	}
 
-	sshPubKeys, err := authkeylib.ParseAuthKeys(bytes)
+	sshPubKeys, err := authkeylib.ParseAuthKeys(rawContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: target=`%s`: %w", target, err)
 	}

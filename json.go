@@ -21,9 +21,9 @@ type CaesarJson struct {
 	Envelopes []interface{} `json:"envelopes"`
 }
 
-func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
+func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
 	var caesarJson CaesarJson
-	err := json.Unmarshal(bytes, &caesarJson)
+	err := json.Unmarshal(rawContent, &caesarJson)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse `caesar.json`: %w", err)
 	}
