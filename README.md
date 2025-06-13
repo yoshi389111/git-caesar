@@ -81,7 +81,7 @@ List of supported public key prefixes:
 
 ## Example of use
 
-Encrypt your file `secret.txt` for GitHub user `octacat` and save it as `sceret.zip`.
+Encrypt your file `secret.txt` for GitHub user `octacat` and save it as `secret.zip`.
 
 ```
 git-caesar -u octacat -i secret.txt -o secret.zip
@@ -93,7 +93,7 @@ In the same situation, the private key uses `~/.ssh/id_secret`.
 git-caesar -u octacat -i secret.txt -o secret.zip -k ~/.ssh/id_secret
 ```
 
-Decrypt GitLab user `tanuki`'s file `secret.zip` and save it as `sceret.txt`.
+Decrypt GitLab user `tanuki`'s file `secret.zip` and save it as `secret.txt`.
 
 ```
 git-caesar -d -u https://gitlab.com/tanuki.keys -i secret.zip -o secret.txt
