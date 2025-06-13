@@ -62,7 +62,7 @@ func GetPubKeys(target string) ([]caesar.PublicKey, error) {
 		return nil, fmt.Errorf("failed to parse public key: target=`%s`: %w", target, err)
 	}
 
-	pubKeyList := make([]caesar.PublicKey, 0)
+	pubKeyList := make([]caesar.PublicKey, 0, len(sshPubKeys))
 	for _, sshPubKey := range sshPubKeys {
 		pubKey := ToCaesarPubKey(sshPubKey)
 		if pubKey != nil {
