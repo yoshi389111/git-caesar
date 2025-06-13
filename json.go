@@ -15,10 +15,10 @@ const (
 )
 
 type CaesarJson struct {
-	Version   string        `json:"version"`
-	Signature string        `json:"signature"`
-	Signer    string        `json:"signer"`
-	Envelopes []interface{} `json:"envelopes"`
+	Version   string `json:"version"`
+	Signature string `json:"signature"`
+	Signer    string `json:"signer"`
+	Envelopes []any  `json:"envelopes"`
 }
 
 func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
@@ -27,9 +27,9 @@ func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse `caesar.json`: %w", err)
 	}
-	// replace `interface{}` with `Envelope`
+	// replace `any` with `Envelope`
 	for i, envelope := range caesarJson.Envelopes {
-		envelopeMap, ok := envelope.(map[string]interface{})
+		envelopeMap, ok := envelope.(map[string]any)
 		if !ok {
 			return nil, fmt.Errorf("invalid envelope format in caesar.json")
 		}

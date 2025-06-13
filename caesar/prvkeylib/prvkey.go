@@ -108,7 +108,7 @@ func ParsePrvKeyWithPass(bytes []byte, passphrase string) (caesar.PrivateKey, er
 	return toCaesarPrivateKey(key)
 }
 
-func toCaesarPrivateKey(key interface{}) (caesar.PrivateKey, error) {
+func toCaesarPrivateKey(key any) (caesar.PrivateKey, error) {
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
 		return rs.NewPrivateKey(*k), nil

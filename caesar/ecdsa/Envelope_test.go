@@ -3,7 +3,7 @@ package ecdsa
 import "testing"
 
 func Test_Unmarshal(t *testing.T) {
-	m := map[string]interface{}{
+	m := map[string]any{
 		"type":   "ecdsa",
 		"key":    "key_value",
 		"dest":   "dest_value",

@@ -23,7 +23,7 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	}
 
 	// encrypt shared key per public key
-	var envelopes []interface{}
+	var envelopes []any
 	for _, peerPubKey := range peerPubKeys {
 		envelope, err := peerPubKey.NewEnvelope(shareKey)
 		if err != nil {

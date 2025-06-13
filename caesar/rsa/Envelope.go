@@ -10,7 +10,7 @@ func (a Envelope) GetDest() string {
 	return a.RecverAuthKey
 }
 
-func Unmarshal(envelopeMap map[string]interface{}) Envelope {
+func Unmarshal(envelopeMap map[string]any) Envelope {
 	envelope := Envelope{
 		Type:          envelopeMap["type"].(string),
 		ShareKey:      envelopeMap["key"].(string),
