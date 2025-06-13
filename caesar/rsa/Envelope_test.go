@@ -10,7 +10,10 @@ func Test_Unmarshal(t *testing.T) {
 		"pubkey": "pubkey_vaoue",
 	}
 
-	e := Unmarshal(m)
+	e, err := Unmarshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if e.Type != "ecdsa" {
 		t.Error(e.Type)
 	}
