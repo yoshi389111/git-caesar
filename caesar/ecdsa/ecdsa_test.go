@@ -80,7 +80,7 @@ func Test_Encrypt_Decrypt_P521(t *testing.T) {
 	}
 }
 
-func Test_Sing_Verify_P521(t *testing.T) {
+func Test_Sign_Verify_P521(t *testing.T) {
 	message := []byte("hello world --------------- 0521")
 	prvKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	if err != nil {

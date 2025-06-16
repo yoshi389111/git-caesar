@@ -20,39 +20,39 @@ func ReadInputFile(filePath string) ([]byte, error) {
 }
 
 func ReadFile(filePath string) ([]byte, error) {
-	bytes, err := os.ReadFile(filePath)
+	rawContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read `%s`: %w", filePath, err)
 	}
-	return bytes, nil
+	return rawContent, nil
 }
 
 func ReadStdin() ([]byte, error) {
-	bytes, err := io.ReadAll(os.Stdin)
+	rawContent, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read stdin: %w", err)
 	}
-	return bytes, nil
+	return rawContent, nil
 }
 
-func WriteOutputFile(filePath string, bytes []byte) error {
+func WriteOutputFile(filePath string, rawContent []byte) error {
 	if filePath == "" {
-		return WriteStdout(bytes)
+		return WriteStdout(rawContent)
 	} else {
-		return WriteFile(filePath, bytes)
+		return WriteFile(filePath, rawContent)
 	}
 }
 
-func WriteFile(filePath string, bytes []byte) error {
-	err := os.WriteFile(filePath, bytes, 0644)
+func WriteFile(filePath string, rawContent []byte) error {
+	err := os.WriteFile(filePath, rawContent, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write `%s`: %w", filePath, err)
 	}
 	return nil
 }
 
-func WriteStdout(bytes []byte) error {
-	_, err := os.Stdout.Write(bytes)
+func WriteStdout(rawContent []byte) error {
+	_, err := os.Stdout.Write(rawContent)
 	if err != nil {
 		return fmt.Errorf("failed to write stdout: %w", err)
 	}

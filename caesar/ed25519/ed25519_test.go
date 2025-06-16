@@ -33,7 +33,7 @@ func Test_Encrypt_Decrypt(t *testing.T) {
 	}
 }
 
-func Test_Sing_Verify(t *testing.T) {
+func Test_Sign_Verify(t *testing.T) {
 	message := []byte("hello world --------------- 0521")
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {

@@ -6,16 +6,16 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// ParseAuthKeys parses multiple SSH public keys from a byte slice (octets) in authorized_keys format.
-func ParseAuthKeys(octets []byte) ([]ssh.PublicKey, error) {
+// ParseAuthKeys parses multiple SSH public keys from a byte slice (rawContent) in authorized_keys format.
+func ParseAuthKeys(rawContent []byte) ([]ssh.PublicKey, error) {
 	var sshPubKeys []ssh.PublicKey
-	for len(octets) > 0 {
-		sshPubKey, _, _, rest, err := ssh.ParseAuthorizedKey(octets)
+	for len(rawContent) > 0 {
+		sshPubKey, _, _, rest, err := ssh.ParseAuthorizedKey(rawContent)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse authentication key: key=`%s`: %w", string(octets), err)
+			return nil, fmt.Errorf("failed to parse authentication key: key=`%s`: %w", string(rawContent), err)
 		}
 		sshPubKeys = append(sshPubKeys, sshPubKey)
-		octets = rest
+		rawContent = rest
 	}
 	return sshPubKeys, nil
 }

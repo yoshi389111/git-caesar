@@ -91,8 +91,8 @@ func SearchPrvKey() ([]byte, error) {
 	return nil, errors.New("default private keys could not be found")
 }
 
-func ParsePrvKey(bytes []byte) (caesar.PrivateKey, error) {
-	key, err := ssh.ParseRawPrivateKey(bytes)
+func ParsePrvKey(rawContent []byte) (caesar.PrivateKey, error) {
+	key, err := ssh.ParseRawPrivateKey(rawContent)
 	if err != nil {
 		// Note: In case of `ssh.PassphraseMissingError`, it should be returned as is
 		return nil, err // don't wrap
@@ -108,7 +108,7 @@ func ParsePrvKeyWithPass(bytes []byte, passphrase string) (caesar.PrivateKey, er
 	return toCaesarPrivateKey(key)
 }
 
-func toCaesarPrivateKey(key interface{}) (caesar.PrivateKey, error) {
+func toCaesarPrivateKey(key any) (caesar.PrivateKey, error) {
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
 		return rs.NewPrivateKey(*k), nil

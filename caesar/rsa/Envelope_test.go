@@ -3,14 +3,17 @@ package rsa
 import "testing"
 
 func Test_Unmarshal(t *testing.T) {
-	m := map[string]interface{}{
+	m := map[string]any{
 		"type":   "ecdsa",
 		"key":    "key_value",
 		"dest":   "dest_value",
 		"pubkey": "pubkey_vaoue",
 	}
 
-	e := Unmarshal(m)
+	e, err := Unmarshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if e.Type != "ecdsa" {
 		t.Error(e.Type)
 	}

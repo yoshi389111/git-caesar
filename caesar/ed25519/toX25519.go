@@ -34,10 +34,14 @@ func toX25519PublicKey(edPubKey *ed25519.PublicKey) (*ecdh.PublicKey, error) {
 	bigEndianY[0] &= 0b0111_1111
 
 	y := new(big.Int).SetBytes(bigEndianY)
-	numer := new(big.Int).Add(one, y)          // (1 + y)
-	denomInv := y.ModInverse(y.Sub(one, y), p) // 1 / (1 - y)
-	// u = (1 + y) / (1 - y)
-	u := numer.Mod(numer.Mul(numer, denomInv), p)
+	numer := new(big.Int).Add(one, y)             // (1 + y)
+	denom := new(big.Int).Sub(one, y)             // (1 - y)
+	denomInv := new(big.Int).ModInverse(denom, p) // 1 / (1 - y)
+	if denomInv == nil {
+		return nil, errors.New("ed25519: public key is not valid for x25519 conversion")
+	}
+	u := new(big.Int).Mul(numer, denomInv) // u = (1 + y) / (1 - y)
+	u.Mod(u, p)                            // u = u mod p
 
 	// convert to little-endian
 	littleEndianU := make([]byte, 32)

@@ -82,7 +82,7 @@ func Test_EncryptDecryptRsaOaep4096(t *testing.T) {
 	}
 }
 
-func Test_SingVerifyRsa(t *testing.T) {
+func Test_SignVerifyRsa(t *testing.T) {
 	message := []byte("hello world --------------- 0521")
 	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {

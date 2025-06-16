@@ -15,37 +15,49 @@ const (
 )
 
 type CaesarJson struct {
-	Version   string        `json:"version"`
-	Signature string        `json:"signature"`
-	Signer    string        `json:"signer"`
-	Envelopes []interface{} `json:"envelopes"`
+	Version   string `json:"version"`
+	Signature string `json:"signature"`
+	Signer    string `json:"signer"`
+	Envelopes []any  `json:"envelopes"`
 }
 
-func parseCaesarJson(bytes []byte) (*CaesarJson, error) {
+func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
 	var caesarJson CaesarJson
-	err := json.Unmarshal(bytes, &caesarJson)
+	err := json.Unmarshal(rawContent, &caesarJson)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse `caesar.json`: %w", err)
 	}
-	// replace `interface{}` with `Envelope`
+	// replace `any` with `Envelope`
 	for i, envelope := range caesarJson.Envelopes {
-		envelopeMap, ok := envelope.(map[string]interface{})
+		envelopeMap, ok := envelope.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("invalid envelope format in caesar.json")
+			return nil, fmt.Errorf("invalid envelope format at index %d in caesar.json", i)
 		}
-		t, ok := envelopeMap["type"].(string)
+		typeName, ok := envelopeMap["type"].(string)
 		if !ok {
-			return nil, fmt.Errorf("envelope type is missing or not a string")
+			return nil, fmt.Errorf("envelope type is missing or not a string at index %d in caesar.json", i)
 		}
-		switch t {
+		switch typeName {
 		case "rsa":
-			caesarJson.Envelopes[i] = rsa.Unmarshal(envelopeMap)
+			env, err := rsa.Unmarshal(envelopeMap)
+			if err != nil {
+				return nil, err
+			}
+			caesarJson.Envelopes[i] = env
 		case "ecdsa":
-			caesarJson.Envelopes[i] = ecdsa.Unmarshal(envelopeMap)
+			env, err := ecdsa.Unmarshal(envelopeMap)
+			if err != nil {
+				return nil, err
+			}
+			caesarJson.Envelopes[i] = env
 		case "ed25519":
-			caesarJson.Envelopes[i] = ed25519.Unmarshal(envelopeMap)
+			env, err := ed25519.Unmarshal(envelopeMap)
+			if err != nil {
+				return nil, err
+			}
+			caesarJson.Envelopes[i] = env
 		default:
-			return nil, fmt.Errorf("unknown envelope type `%s`", t)
+			return nil, fmt.Errorf("unknown envelope type `%s` at index %d in caesar.json", typeName, i)
 		}
 	}
 	return &caesarJson, nil

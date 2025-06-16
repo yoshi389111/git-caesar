@@ -55,3 +55,40 @@ func Test_toX25519PublicKey_errors_with_invalid_length_keys(t *testing.T) {
 		}
 	})
 }
+
+func Test_toX25519PrivateKey_basic(t *testing.T) {
+	_, priv, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = toX25519PrivateKey(&priv)
+	if err != nil {
+		t.Fatalf("toX25519PrivateKey failed: %v", err)
+	}
+}
+
+func Test_toX25519PublicKey_allZero(t *testing.T) {
+	allZero := ed25519.PublicKey(make([]byte, 32))
+	_, err := toX25519PublicKey(&allZero)
+	if err != nil {
+		t.Fatalf("all zero public key should not error, got: %v", err)
+	}
+}
+
+func Test_toX25519PublicKey_allFF(t *testing.T) {
+	allFF := ed25519.PublicKey(bytes.Repeat([]byte{0xFF}, 32))
+	_, err := toX25519PublicKey(&allFF)
+	if err != nil {
+		t.Fatalf("all 0xFF public key should not error, got: %v", err)
+	}
+}
+
+func Test_toX25519PublicKey_highBitSet(t *testing.T) {
+	// 先頭ビットが立っているパターン
+	key := ed25519.PublicKey(make([]byte, 32))
+	key[31] = 0x80
+	_, err := toX25519PublicKey(&key)
+	if err != nil {
+		t.Fatalf("high bit set public key should not error, got: %v", err)
+	}
+}

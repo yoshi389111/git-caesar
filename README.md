@@ -10,13 +10,13 @@ Requires go 1.23.0 or higher
 
 See below for how to install/upgrade.
 
-```
+```shell
 go install github.com/yoshi389111/git-caesar@latest
 ```
 
 See below for how to uninstall.
 
-```
+```shell
 go clean -i github.com/yoshi389111/git-caesar
 ```
 
@@ -24,13 +24,13 @@ go clean -i github.com/yoshi389111/git-caesar
 
 See below for how to install/upgrade.
 
-```
+```shell
 brew install yoshi389111/apps/git-caesar
 ```
 
 See below for how to uninstall.
 
-```
+```shell
 brew uninstall yoshi389111/apps/git-caesar
 ```
 
@@ -40,7 +40,7 @@ Download the file that matches your operating environment from "Releases."
 
 ## Usage
 
-```
+```txt
 Usage:
 
   git-caesar [options]
@@ -81,35 +81,34 @@ List of supported public key prefixes:
 
 ## Example of use
 
-Encrypt your file `secret.txt` for GitHub user `octacat` and save it as `sceret.zip`.
+Encrypt your file `secret.txt` for GitHub user `octacat` and save it as `secret.zip`.
 
-```
+```shell
 git-caesar -u octacat -i secret.txt -o secret.zip
 ```
 
 In the same situation, the private key uses `~/.ssh/id_secret`.
 
-```
+```shell
 git-caesar -u octacat -i secret.txt -o secret.zip -k ~/.ssh/id_secret
 ```
 
-Decrypt GitLab user `tanuki`'s file `secret.zip` and save it as `sceret.txt`.
+Decrypt GitLab user `tanuki`'s file `secret.zip` and save it as `secret.txt`.
 
-```
+```shell
 git-caesar -d -u https://gitlab.com/tanuki.keys -i secret.zip -o secret.txt
 ```
 
 Same situation, no signature verification.
 
-```
+```shell
 git-caesar -d -i secret.zip -o secret.txt
 ```
 
 ## Related Tech Blog Articles
 
 * dev.to [Passwordless encryption with public key for GitHub](https://dev.to/yoshi389111/passwordless-encryption-with-public-key-for-github-kb6) English
-* Qiita [GitHub 用の公開鍵でパスワードレスの暗号化/復号をしてみる
-](https://qiita.com/yoshi389111/items/238908e1933a8a4018c6) Japanese
+* Qiita [GitHub 用の公開鍵でパスワードレスの暗号化/復号をしてみる](https://qiita.com/yoshi389111/items/238908e1933a8a4018c6) Japanese
 
 ## Copyright and License
 
