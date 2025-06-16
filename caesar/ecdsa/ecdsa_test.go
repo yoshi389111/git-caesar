@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/yoshi389111/git-caesar/caesar/aes"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -205,5 +206,66 @@ func Test_Verify_Compatibility(t *testing.T) {
 	}
 	if !ecdsa.Verify(pubKey, hash[:], signature.R, signature.S) {
 		t.Fatal("The signature of the new version is not verified by verifying the old version.")
+	}
+}
+
+func Test_Encrypt_Compatibility(t *testing.T) {
+	message := []byte("hello world ------------- compat") // 32byte
+	peerPrvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	peerPubKey := &peerPrvKey.PublicKey
+
+	// Encrypt using the new method
+	ciphertext, tempPubKey, err := Encrypt(peerPubKey, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Decrypt using the old method
+	curve := peerPrvKey.Curve
+	exchangedKey, _ := curve.ScalarMult(tempPubKey.X, tempPubKey.Y, peerPrvKey.D.Bytes())
+	sharedKey := sha256.Sum256(exchangedKey.Bytes())
+	plaintext, err := aes.Decrypt(sharedKey[:], ciphertext)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext) {
+		t.Fatal(hex.Dump(plaintext))
+	}
+}
+
+func Test_Decrypt_Compatibility(t *testing.T) {
+	message := []byte("hello world ------------- compat") // 32byte
+	peerPrvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	peerPubKey := &peerPrvKey.PublicKey
+
+	// Encrypt using the old method
+	curve := peerPubKey.Curve
+	tempPrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	exchangedKey, _ := curve.ScalarMult(peerPubKey.X, peerPubKey.Y, tempPrvKey.D.Bytes())
+	sharedKey := sha256.Sum256(exchangedKey.Bytes())
+	ciphertext, err := aes.Encrypt(sharedKey[:], message)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempPubKey := &tempPrvKey.PublicKey
+
+	// Decrypt using the new method
+	plaintext, err := Decrypt(peerPrvKey, tempPubKey, ciphertext)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext) {
+		t.Fatal(hex.Dump(plaintext))
 	}
 }
