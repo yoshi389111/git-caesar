@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"math/big"
 
 	"github.com/yoshi389111/git-caesar/caesar/aes"
 )
@@ -20,10 +21,23 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ecdsa: %w", err)
 	}
 
+	ecdhPrvKey, err := tempPrvKey.ECDH()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
+	}
+
+	ecdhPubKey, err := peersPubKey.ECDH()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get ECDH public key for ecdsa: %w", err)
+	}
+
 	// key exchange
-	// Perform ECDH key exchange: use only the X coordinate as the shared secret (standard practice).
-	exchangedKey, _ := curve.ScalarMult(peersPubKey.X, peersPubKey.Y, tempPrvKey.D.Bytes())
-	sharedKey := sha256.Sum256(exchangedKey.Bytes())
+	exchangedKey, err := ecdhPrvKey.ECDH(ecdhPubKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
+	}
+
+	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
 
 	// encrypt AES-256-CBC
 	ciphertext, err := aes.Encrypt(sharedKey[:], message)
@@ -35,11 +49,23 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 
 // Decrypt decrypts a message using ECDH key exchange and AES-256-CBC.
 func Decrypt(prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
-	curve := prvKey.Curve
+	ecdhPrvKey, err := prvKey.ECDH()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
+	}
+
+	ecdhPubKey, err := peersPubKey.ECDH()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ECDH public key for ecdsa: %w", err)
+	}
 
 	// key exchange
-	exchangedKey, _ := curve.ScalarMult(peersPubKey.X, peersPubKey.Y, prvKey.D.Bytes())
-	sharedKey := sha256.Sum256(exchangedKey.Bytes())
+	exchangedKey, err := ecdhPrvKey.ECDH(ecdhPubKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
+	}
+
+	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
 
 	// decrypt AES-256-CBC
 	return aes.Decrypt(sharedKey[:], ciphertext)
