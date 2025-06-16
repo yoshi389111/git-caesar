@@ -10,8 +10,16 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/aes"
 )
 
-func Encrypt(otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
+func Encrypt(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
+	switch version {
+	case "1":
+		return encryptV1(version, otherPubKey, message)
+	default:
+		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
 
+func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
 	// generate temporary key pair
 	tempEdPubKey, tempEdPrvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -37,14 +45,23 @@ func Encrypt(otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.P
 	}
 
 	// encrypt AES-256-CBC
-	ciphertext, err := aes.Encrypt(sharedKey, message)
+	ciphertext, err := aes.Encrypt(version, sharedKey, message)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ed25519: %w", err)
 	}
 	return ciphertext, &tempEdPubKey, nil
 }
 
-func Decrypt(prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
+func Decrypt(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return decryptV1(version, prvKey, otherPubKey, ciphertext)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func decryptV1(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
 
 	// convert ed25519 public key to x25519 public key
 	xOtherPubKey, err := toX25519PublicKey(otherPubKey)
@@ -65,7 +82,7 @@ func Decrypt(prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphert
 	}
 
 	// decrypt AES-256-CBC
-	return aes.Decrypt(sharedKey, ciphertext)
+	return aes.Decrypt(version, sharedKey, ciphertext)
 }
 
 func exchangeKey(xPrvKey *ecdh.PrivateKey, xPubKey *ecdh.PublicKey) ([]byte, error) {
@@ -77,13 +94,33 @@ func exchangeKey(xPrvKey *ecdh.PrivateKey, xPubKey *ecdh.PublicKey) ([]byte, err
 	return sharedKey[:], nil
 }
 
-func Sign(prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
+func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return signV1(version, prvKey, message)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func signV1(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
+	_ = version // unused parameter
 	hash := sha256.Sum256(message)
 	sig := ed25519.Sign(*prvKey, hash[:])
 	return sig, nil
 }
 
-func Verify(pubKey *ed25519.PublicKey, message, sig []byte) bool {
+func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
+	switch version {
+	case "1":
+		return verifyV1(version, pubKey, message, sig)
+	default:
+		return false // unknown version
+	}
+}
+
+func verifyV1(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
+	_ = version // unused parameter
 	hash := sha256.Sum256(message)
 	return ed25519.Verify(*pubKey, hash[:], sig)
 }

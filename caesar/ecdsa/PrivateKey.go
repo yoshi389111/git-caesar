@@ -20,7 +20,7 @@ func NewPrivateKey(prvKey ecdsa.PrivateKey) *PrivateKey {
 	}
 }
 
-func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
+func (p PrivateKey) ExtractShareKey(version string, envelope caesar.Envelope) ([]byte, error) {
 	envelopeEc, ok := envelope.(Envelope)
 	if !ok {
 		return nil, fmt.Errorf("envelope is not of type ecdsa.Envelope")
@@ -41,11 +41,11 @@ func (p PrivateKey) ExtractShareKey(envelope caesar.Envelope) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("crypto public key is not *ecdsa.PublicKey")
 	}
-	return Decrypt(&p.prvKey, pubKey, ciphertext)
+	return Decrypt(version, &p.prvKey, pubKey, ciphertext)
 }
 
-func (p PrivateKey) Sign(message []byte) ([]byte, error) {
-	return Sign(&p.prvKey, message)
+func (p PrivateKey) Sign(version string, message []byte) ([]byte, error) {
+	return Sign(version, &p.prvKey, message)
 }
 
 func (p PrivateKey) GetAuthKey() (string, error) {

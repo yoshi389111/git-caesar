@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func Test_EncryptDecryptAesCbc32(t *testing.T) {
+func Test_Encrypt_Decrypt_AesCbc32_V1(t *testing.T) {
 	message := []byte("hello world AES-256-CBC")
 
 	key := make([]byte, 32)
@@ -16,12 +16,12 @@ func Test_EncryptDecryptAesCbc32(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ciphertext, err := Encrypt(key, []byte(message))
+	ciphertext, err := Encrypt("1", key, []byte(message))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plaintext, err := Decrypt(key, ciphertext)
+	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func Test_EncryptDecryptAesCbc32(t *testing.T) {
 	}
 }
 
-func Test_EncryptDecryptAesCbc24(t *testing.T) {
+func Test_Encrypt_Decrypt_AesCbc24_V1(t *testing.T) {
 	message := []byte("hello world AES-192-CBC")
 
 	key := make([]byte, 24)
@@ -40,12 +40,12 @@ func Test_EncryptDecryptAesCbc24(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ciphertext, err := Encrypt(key, []byte(message))
+	ciphertext, err := Encrypt("1", key, []byte(message))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plaintext, err := Decrypt(key, ciphertext)
+	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func Test_EncryptDecryptAesCbc24(t *testing.T) {
 	}
 }
 
-func Test_EncryptDecryptAesCbc16(t *testing.T) {
+func Test_Encrypt_Decrypt_AesCbc16_V1(t *testing.T) {
 	message := []byte("hello world AES-128-CBC")
 
 	key := make([]byte, 16)
@@ -64,12 +64,12 @@ func Test_EncryptDecryptAesCbc16(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ciphertext, err := Encrypt(key, []byte(message))
+	ciphertext, err := Encrypt("1", key, []byte(message))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plaintext, err := Decrypt(key, ciphertext)
+	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}

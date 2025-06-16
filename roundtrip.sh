@@ -31,7 +31,7 @@ cp -p target/git-caesar "$WORKDIR"
     echo "Et tu, Brute?" >> plain.txt
 
     decrypt() {
-        ./git-caesar -d -k "bob_${2}_key" -u "alice_${1}_key.pub" -i "encrypted_${1}.bin" -o "decrypted_${1}_${2}.txt"
+        ./git-caesar -F 1 -d -k "bob_${2}_key" -u "alice_${1}_key.pub" -i "encrypted_${1}.bin" -o "decrypted_${1}_${2}.txt"
         if diff plain.txt "decrypted_${1}_${2}.txt"; then
             echo "Success. ${1} -> ${2}"
         else
@@ -41,14 +41,14 @@ cp -p target/git-caesar "$WORKDIR"
     }
 
     # encrypt (RSA)
-    ./git-caesar -k alice_rsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_rsa.bin
+    ./git-caesar -F 1 -k alice_rsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_rsa.bin
     # decrypt
     decrypt rsa rsa
     decrypt rsa ecdsa
     decrypt rsa ed25519
 
     # encrypt (ECDSA)
-    ./git-caesar -k alice_ecdsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_ecdsa.bin
+    ./git-caesar -F 1 -k alice_ecdsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_ecdsa.bin
 
     # decrypt
     decrypt ecdsa rsa
@@ -56,7 +56,7 @@ cp -p target/git-caesar "$WORKDIR"
     decrypt ecdsa ed25519
 
     # encrypt (ED25519)
-    ./git-caesar -k alice_ed25519_key -u bob_pub_list.txt -i plain.txt -o encrypted_ed25519.bin
+    ./git-caesar -F 1 -k alice_ed25519_key -u bob_pub_list.txt -i plain.txt -o encrypted_ed25519.bin
 
     # decrypt
     decrypt ed25519 rsa

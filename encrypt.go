@@ -13,7 +13,7 @@ import (
 	"github.com/yoshi389111/git-caesar/iolib"
 )
 
-func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext []byte) ([]byte, error) {
+func encrypt(version string, peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext []byte) ([]byte, error) {
 
 	// generate shared key (for AES-256-CBC)
 	shareKey := make([]byte, 32)
@@ -25,21 +25,21 @@ func encrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext
 	// encrypt shared key per public key
 	envelopes := make([]any, 0, len(peerPubKeys))
 	for _, peerPubKey := range peerPubKeys {
-		envelope, err := peerPubKey.NewEnvelope(shareKey)
+		envelope, err := peerPubKey.NewEnvelope(version, shareKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create envelope: %w", err)
 		}
 		envelopes = append(envelopes, envelope)
 	}
 
-	// encrypt the plaintext (by AES-256-CBC)
-	ciphertext, err := aes.Encrypt(shareKey, plaintext)
+	// encrypt the plaintext (by AES)
+	ciphertext, err := aes.Encrypt(version, shareKey, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("AES encryption failed: %w", err)
 	}
 
 	// sign the ciphertext
-	sig, err := prvKey.Sign(ciphertext)
+	sig, err := prvKey.Sign(version, ciphertext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign: %w", err)
 	}

@@ -35,8 +35,8 @@ func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 		return nil, fmt.Errorf("failed to unmarshal `caesar.json`: %w", err)
 	}
 
-	// version validation
-	if caesarJson.Version != "1" {
+	// format version validation
+	if !IsValidCaesarJsonVersion(caesarJson.Version) {
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", caesarJson.Version)
 	}
 
@@ -63,7 +63,7 @@ func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	if err != nil {
 		return nil, fmt.Errorf("invalid signature in `caesar.json`: %w", err)
 	}
-	if !peerPubKey.Verify(caesarCipher, sig) {
+	if !peerPubKey.Verify(caesarJson.Version, caesarCipher, sig) {
 		return nil, errors.New("file is corrupted")
 	}
 
@@ -88,13 +88,13 @@ func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 	}
 
 	// key exchange
-	shareKey, err := prvKey.ExtractShareKey(targetEnvelope)
+	shareKey, err := prvKey.ExtractShareKey(caesarJson.Version, targetEnvelope)
 	if err != nil {
 		return nil, fmt.Errorf("key exchange failed: %w", err)
 	}
 
 	// decrypt `caesar.cipher`
-	plaintext, err := aes.Decrypt(shareKey, caesarCipher)
+	plaintext, err := aes.Decrypt(caesarJson.Version, shareKey, caesarCipher)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt `caesar.cipher` with AES: %w", err)
 	}

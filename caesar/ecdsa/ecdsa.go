@@ -12,7 +12,16 @@ import (
 
 // Encrypt encrypts a message using ECDH key exchange and AES-256-CBC.
 // Returns the ciphertext and the ephemeral public key.
-func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
+func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
+	switch version {
+	case "1":
+		return encryptV1(version, peersPubKey, message)
+	default:
+		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	curve := peersPubKey.Curve
 
 	// generate temporary private key
@@ -40,7 +49,7 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
 
 	// encrypt AES-256-CBC
-	ciphertext, err := aes.Encrypt(sharedKey[:], message)
+	ciphertext, err := aes.Encrypt(version, sharedKey[:], message)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ecdsa: %w", err)
 	}
@@ -48,7 +57,16 @@ func Encrypt(peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.Publi
 }
 
 // Decrypt decrypts a message using ECDH key exchange and AES-256-CBC.
-func Decrypt(prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
+func Decrypt(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return decryptV1(version, prvKey, peersPubKey, ciphertext)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
 	ecdhPrvKey, err := prvKey.ECDH()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
@@ -68,11 +86,21 @@ func Decrypt(prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext 
 	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
 
 	// decrypt AES-256-CBC
-	return aes.Decrypt(sharedKey[:], ciphertext)
+	return aes.Decrypt(version, sharedKey[:], ciphertext)
 }
 
 // Sign creates an ECDSA signature for the given message.
-func Sign(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
+func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return signV1(version, prvKey, message)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
+	_ = version // unused parameter
 	hash := sha256.Sum256(message)
 	sig, err := ecdsa.SignASN1(rand.Reader, prvKey, hash[:])
 	if err != nil {
@@ -82,7 +110,17 @@ func Sign(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 }
 
 // Verify checks an ECDSA signature for the given message.
-func Verify(pubKey *ecdsa.PublicKey, message, sig []byte) bool {
+func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
+	switch version {
+	case "1":
+		return verifyV1(version, pubKey, message, sig)
+	default:
+		return false // unknown version
+	}
+}
+
+func verifyV1(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
+	_ = version // unused parameter
 	hash := sha256.Sum256(message)
 	return ecdsa.VerifyASN1(pubKey, hash[:], sig)
 }
