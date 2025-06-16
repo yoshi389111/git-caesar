@@ -10,6 +10,7 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/aes"
 )
 
+// Encrypt encrypts a message using X25519 key exchange and AES-256-CBC.
 func Encrypt(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
 	switch version {
 	case "1":
@@ -52,6 +53,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 	return ciphertext, &tempEdPubKey, nil
 }
 
+// Decrypt decrypts a message using X25519 key exchange and AES-256-CBC.
 func Decrypt(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -90,10 +92,15 @@ func exchangeKey(xPrvKey *ecdh.PrivateKey, xPubKey *ecdh.PublicKey) ([]byte, err
 	if err != nil {
 		return nil, err // don't wrap
 	}
+
+	// When using the exchanged key as an encryption key,
+	// HKDF or similar should be used instead of SHA-2,
+	// but SHA-2 is used for backward compatibility.
 	sharedKey := sha256.Sum256(exchangedKey)
 	return sharedKey[:], nil
 }
 
+// Sign creates a signature for the given message using the provided private key.
 func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -105,11 +112,15 @@ func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, e
 
 func signV1(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 	_ = version // unused parameter
+
+	// In the case of ed25519, hashing before signing/verifying is not required,
+	// but it is done for backwards compatibility.
 	hash := sha256.Sum256(message)
 	sig := ed25519.Sign(*prvKey, hash[:])
 	return sig, nil
 }
 
+// Verify checks if the signature is valid for the given message and public key.
 func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
 	switch version {
 	case "1":
@@ -121,6 +132,9 @@ func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool
 
 func verifyV1(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
 	_ = version // unused parameter
+
+	// In the case of ed25519, hashing before signing/verifying is not required,
+	// but it is done for backwards compatibility.
 	hash := sha256.Sum256(message)
 	return ed25519.Verify(*pubKey, hash[:], sig)
 }

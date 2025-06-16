@@ -11,7 +11,6 @@ import (
 )
 
 // Encrypt encrypts a message using ECDH key exchange and AES-256-CBC.
-// Returns the ciphertext and the ephemeral public key.
 func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	switch version {
 	case "1":
@@ -46,7 +45,14 @@ func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]
 		return nil, nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
 	}
 
-	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
+	// In the case of ecdh, it is not necessary to delete leading zeros,
+	// but they are deleted for backward compatibility.
+	exchangedKey = new(big.Int).SetBytes(exchangedKey).Bytes()
+
+	// When using the exchanged key as an encryption key,
+	// HKDF or similar should be used instead of SHA-2,
+	// but SHA-2 is used for backward compatibility.
+	sharedKey := sha256.Sum256(exchangedKey)
 
 	// encrypt AES-256-CBC
 	ciphertext, err := aes.Encrypt(version, sharedKey[:], message)
@@ -83,7 +89,14 @@ func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Publ
 		return nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
 	}
 
-	sharedKey := sha256.Sum256(new(big.Int).SetBytes(exchangedKey).Bytes())
+	// In the case of ecdh, it is not necessary to delete leading zeros,
+	// but they are deleted for backward compatibility.
+	exchangedKey = new(big.Int).SetBytes(exchangedKey).Bytes()
+
+	// When using the exchanged key as an encryption key,
+	// HKDF or similar should be used instead of SHA-2,
+	// but SHA-2 is used for backward compatibility.
+	sharedKey := sha256.Sum256(exchangedKey)
 
 	// decrypt AES-256-CBC
 	return aes.Decrypt(version, sharedKey[:], ciphertext)
@@ -101,6 +114,7 @@ func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, err
 
 func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	hash := sha256.Sum256(message)
 	sig, err := ecdsa.SignASN1(rand.Reader, prvKey, hash[:])
 	if err != nil {
@@ -121,6 +135,7 @@ func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 
 func verifyV1(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	_ = version // unused parameter
+
 	hash := sha256.Sum256(message)
 	return ecdsa.VerifyASN1(pubKey, hash[:], sig)
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 )
 
+// Encrypt encrypts a message using RSA OAEP with SHA-256.
 func Encrypt(version string, pubKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -19,9 +20,11 @@ func Encrypt(version string, pubKey *rsa.PublicKey, plaintext []byte) ([]byte, e
 
 func encryptV1(version string, pubKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, plaintext, []byte{})
 }
 
+// Decrypt decrypts a message using RSA OAEP with SHA-256.
 func Decrypt(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -33,9 +36,11 @@ func Decrypt(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte,
 
 func decryptV1(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	return rsa.DecryptOAEP(sha256.New(), rand.Reader, prvKey, ciphertext, []byte{})
 }
 
+// Sign signs a message using RSA PKCS#1 v1.5 with SHA-256.
 func Sign(version string, prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -47,10 +52,12 @@ func Sign(version string, prvKey *rsa.PrivateKey, message []byte) ([]byte, error
 
 func signV1(version string, prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	hash := sha256.Sum256(message)
 	return rsa.SignPKCS1v15(nil, prvKey, crypto.SHA256, hash[:])
 }
 
+// Verify verifies a signature using RSA PKCS#1 v1.5 with SHA-256.
 func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 	switch version {
 	case "1":
@@ -62,6 +69,7 @@ func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 
 func verifyV1(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 	_ = version // unused parameter
+
 	hash := sha256.Sum256(message)
 	err := rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hash[:], sig)
 	return err == nil
