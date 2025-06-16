@@ -31,11 +31,11 @@ func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
 	for i, envelope := range caesarJson.Envelopes {
 		envelopeMap, ok := envelope.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("invalid envelope format in caesar.json")
+			return nil, fmt.Errorf("invalid envelope format at index %d in caesar.json", i)
 		}
 		typeName, ok := envelopeMap["type"].(string)
 		if !ok {
-			return nil, fmt.Errorf("envelope type is missing or not a string")
+			return nil, fmt.Errorf("envelope type is missing or not a string at index %d in caesar.json", i)
 		}
 		switch typeName {
 		case "rsa":
@@ -57,7 +57,7 @@ func parseCaesarJson(rawContent []byte) (*CaesarJson, error) {
 			}
 			caesarJson.Envelopes[i] = env
 		default:
-			return nil, fmt.Errorf("unknown envelope type `%s`", typeName)
+			return nil, fmt.Errorf("unknown envelope type `%s` at index %d in caesar.json", typeName, i)
 		}
 	}
 	return &caesarJson, nil
