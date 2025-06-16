@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Test_Encrypt_Decrypt(t *testing.T) {
+func Test_Encrypt_Decrypt_V1(t *testing.T) {
 	message := []byte("hello world --------------- 0256") // 32byte
 
 	bobPubKey, bobPrvKey, err := ed25519.GenerateKey(rand.Reader)
@@ -18,12 +18,12 @@ func Test_Encrypt_Decrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ciphertext, alicePubKey, err := Encrypt(&bobPubKey, message)
+	ciphertext, alicePubKey, err := Encrypt("1", &bobPubKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plaintext, err := Decrypt(&bobPrvKey, alicePubKey, ciphertext)
+	plaintext, err := Decrypt("1", &bobPrvKey, alicePubKey, ciphertext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,24 +33,24 @@ func Test_Encrypt_Decrypt(t *testing.T) {
 	}
 }
 
-func Test_Sign_Verify(t *testing.T) {
+func Test_Sign_Verify_V1(t *testing.T) {
 	message := []byte("hello world --------------- 0521")
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	sig, err := Sign(&prvKey, message)
+	sig, err := Sign("1", &prvKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !Verify(&pubKey, message, sig) {
+	if !Verify("1", &pubKey, message, sig) {
 		t.Fatal("verify failed")
 	}
 }
 
-func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
+func Test_NewEnvelope_ExtractShareKey_V1(t *testing.T) {
 	message := []byte("hello world --------------- 1024") // 32byte
 
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
@@ -66,12 +66,12 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 	ed25519PrvKey := NewPrivateKey(prvKey)
 	ed25519PubKey := NewPublicKey(pubKey, sshPubKey)
 
-	addInfo, err := ed25519PubKey.NewEnvelope(message)
+	addInfo, err := ed25519PubKey.NewEnvelope("1", message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	decrypted, err := ed25519PrvKey.ExtractShareKey(addInfo)
+	decrypted, err := ed25519PrvKey.ExtractShareKey("1", addInfo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 	}
 }
 
-func Test_PrivateKeySign_PublickKeyVerify(t *testing.T) {
+func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
 	message := []byte("hello world --------------- 1024") // 32byte
 
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
@@ -96,12 +96,12 @@ func Test_PrivateKeySign_PublickKeyVerify(t *testing.T) {
 	ed25519PrvKey := NewPrivateKey(prvKey)
 	ed25519PubKey := NewPublicKey(pubKey, sshPubKey)
 
-	sig, err := ed25519PrvKey.Sign(message)
+	sig, err := ed25519PrvKey.Sign("1", message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !ed25519PubKey.Verify(message, sig) {
+	if !ed25519PubKey.Verify("1", message, sig) {
 		t.Fatal("verify failed")
 	}
 }

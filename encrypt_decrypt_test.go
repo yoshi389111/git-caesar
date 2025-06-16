@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Test_encrypt_decrypt_rsa(t *testing.T) {
+func Test_encrypt_decrypt_rsa_V1(t *testing.T) {
 
 	alicePrvKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
@@ -78,7 +78,7 @@ func Test_encrypt_decrypt_rsa(t *testing.T) {
 
 	message := []byte("hello world")
 
-	zipBytes, err := encrypt(bobPubKeys, aliceCaesarPrvKey, message)
+	zipBytes, err := encrypt("1", bobPubKeys, aliceCaesarPrvKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func Test_encrypt_decrypt_rsa(t *testing.T) {
 	}
 }
 
-func Test_encrypt_decrypt_ecdsa(t *testing.T) {
+func Test_encrypt_decrypt_ecdsa_V1(t *testing.T) {
 
 	alicePrvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -171,7 +171,7 @@ func Test_encrypt_decrypt_ecdsa(t *testing.T) {
 
 	message := []byte("hello world")
 
-	zipBytes, err := encrypt(bobPubKeys, aliceCaesarPrvKey, message)
+	zipBytes, err := encrypt("1", bobPubKeys, aliceCaesarPrvKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +204,7 @@ func Test_encrypt_decrypt_ecdsa(t *testing.T) {
 	}
 }
 
-func Test_encrypt_decrypt_ed25519(t *testing.T) {
+func Test_encrypt_decrypt_ed25519_V1(t *testing.T) {
 
 	alicePubKey, alicePrvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -263,7 +263,7 @@ func Test_encrypt_decrypt_ed25519(t *testing.T) {
 
 	message := []byte("hello world")
 
-	zipBytes, err := encrypt(bobPubKeys, aliceCaesarPrvKey, message)
+	zipBytes, err := encrypt("1", bobPubKeys, aliceCaesarPrvKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -43,7 +43,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Recipient's public key not found.\n")
 			os.Exit(1)
 		}
-		outBytes, err = encrypt(peerPubKeys, prvKey, inBytes)
+		outBytes, err = encrypt(string(opts.FormatVersion), peerPubKeys, prvKey, inBytes)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "encrypt error: %v\n", err)
 			os.Exit(1)

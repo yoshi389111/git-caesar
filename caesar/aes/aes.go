@@ -8,7 +8,17 @@ import (
 	"fmt"
 )
 
-func Encrypt(key, plaintext []byte) ([]byte, error) {
+func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return encryptV1(version, key, plaintext)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
+	_ = version // unused parameter
 	// pad the message with PKCS#7
 	padding := aes.BlockSize - len(plaintext)%aes.BlockSize
 	padtext := append(plaintext, bytes.Repeat([]byte{byte(padding)}, padding)...)
@@ -34,7 +44,17 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-func Decrypt(key, ciphertext []byte) ([]byte, error) {
+func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
+	switch version {
+	case "1":
+		return decryptV1(version, key, ciphertext)
+	default:
+		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
+	}
+}
+
+func decryptV1(version string, key, ciphertext []byte) ([]byte, error) {
+	_ = version // unused parameter
 	// Check if ciphertext is long enough to contain an IV
 	if len(ciphertext) < aes.BlockSize {
 		return nil, fmt.Errorf("ciphertext too short")

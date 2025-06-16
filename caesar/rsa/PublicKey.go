@@ -22,8 +22,8 @@ func NewPublicKey(pubKey rsa.PublicKey, sshPubKey ssh.PublicKey) *PublicKey {
 	}
 }
 
-func (p PublicKey) NewEnvelope(shareKey []byte) (caesar.Envelope, error) {
-	ciphertext, err := Encrypt(&p.pubKey, shareKey)
+func (p PublicKey) NewEnvelope(version string, shareKey []byte) (caesar.Envelope, error) {
+	ciphertext, err := Encrypt(version, &p.pubKey, shareKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt for rsa: %w", err)
 	}
@@ -35,8 +35,8 @@ func (p PublicKey) NewEnvelope(shareKey []byte) (caesar.Envelope, error) {
 	return envelope, nil
 }
 
-func (p PublicKey) Verify(message, sig []byte) bool {
-	return Verify(&p.pubKey, message, sig)
+func (p PublicKey) Verify(version string, message, sig []byte) bool {
+	return Verify(version, &p.pubKey, message, sig)
 }
 
 func (p PublicKey) GetAuthKey() string {

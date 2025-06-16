@@ -1,9 +1,9 @@
 package caesar
 
 type PublicKey interface {
-	NewEnvelope(shareKey []byte) (Envelope, error)
+	NewEnvelope(version string, shareKey []byte) (Envelope, error)
 
-	Verify(message, sig []byte) bool
+	Verify(version string, message, sig []byte) bool
 
 	GetAuthKey() string
 }
