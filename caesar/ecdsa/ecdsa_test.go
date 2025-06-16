@@ -5,7 +5,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/asn1"
 	"encoding/hex"
+	"math/big"
 	"testing"
 
 	"golang.org/x/crypto/ssh"
@@ -152,5 +155,55 @@ func Test_PrivateKeySign_PublickKeyVerify(t *testing.T) {
 
 	if !ecdsaPubKey.Verify(message, sig) {
 		t.Fatal("verify failed")
+	}
+}
+
+type sigParam struct {
+	R, S *big.Int
+}
+
+func Test_Signature_Compatibility(t *testing.T) {
+	message := []byte("hello world ------------- compat") // 32byte
+	prvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubKey := &prvKey.PublicKey
+
+	hash := sha256.Sum256(message)
+	r, s, err := ecdsa.Sign(rand.Reader, prvKey, hash[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigOld, err := asn1.Marshal(sigParam{R: r, S: s})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !Verify(pubKey, message, sigOld) {
+		t.Fatal("The signature of the old version is not verified by verifying the new version.")
+	}
+}
+
+func Test_Verify_Compatibility(t *testing.T) {
+	message := []byte("hello world ------------- compat") // 32byte
+	prvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubKey := &prvKey.PublicKey
+
+	hash := sha256.Sum256(message)
+	sigNew, err := Sign(prvKey, message)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signature := &sigParam{}
+	_, err = asn1.Unmarshal(sigNew, signature)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ecdsa.Verify(pubKey, hash[:], signature.R, signature.S) {
+		t.Fatal("The signature of the new version is not verified by verifying the old version.")
 	}
 }
