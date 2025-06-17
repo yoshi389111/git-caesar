@@ -21,6 +21,15 @@ func Test_Encrypt_Decrypt_AesCbc32_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, err := Encrypt("1", key, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -28,6 +37,15 @@ func Test_Encrypt_Decrypt_AesCbc32_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", key, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }
 
@@ -45,6 +63,15 @@ func Test_Encrypt_Decrypt_AesCbc24_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, err := Encrypt("1", key, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -52,6 +79,15 @@ func Test_Encrypt_Decrypt_AesCbc24_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", key, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }
 
@@ -69,6 +105,15 @@ func Test_Encrypt_Decrypt_AesCbc16_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, err := Encrypt("1", key, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", key, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -76,5 +121,14 @@ func Test_Encrypt_Decrypt_AesCbc16_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", key, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }

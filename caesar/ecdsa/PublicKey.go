@@ -23,11 +23,11 @@ func NewPublicKey(pubKey ecdsa.PublicKey, sshPubKey ssh.PublicKey) *PublicKey {
 }
 
 func (p PublicKey) NewEnvelope(version string, shareKey []byte) (caesar.Envelope, error) {
-	ciphertext, tempPubKey, err := Encrypt(version, &p.pubKey, shareKey)
+	ciphertext, ephemeralPubKey, err := Encrypt(version, &p.pubKey, shareKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt for ecdsa: %w", err)
 	}
-	senderSSHPubKey, err := ssh.NewPublicKey(tempPubKey)
+	senderSSHPubKey, err := ssh.NewPublicKey(ephemeralPubKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate sender's ssh.PublicKey for ecdsa: %w", err)
 	}

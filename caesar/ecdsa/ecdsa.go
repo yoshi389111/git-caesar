@@ -10,7 +10,7 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/aes"
 )
 
-// Encrypt encrypts a message using ECDH key exchange and AES-256-CBC.
+// Encrypt encrypts a message using ECDH key exchange and AES-256.
 func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	switch version {
 	case "1":
@@ -23,13 +23,13 @@ func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]by
 func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	curve := peersPubKey.Curve
 
-	// generate temporary private key
-	tempPrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	// generate ephemeral private key
+	ephemeralPrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ecdsa: %w", err)
 	}
 
-	ecdhPrvKey, err := tempPrvKey.ECDH()
+	ecdhPrvKey, err := ephemeralPrvKey.ECDH()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
 	}
@@ -54,15 +54,15 @@ func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]
 	// but SHA-2 is used for backward compatibility.
 	sharedKey := sha256.Sum256(exchangedKey)
 
-	// encrypt AES-256-CBC
+	// encrypt AES-256
 	ciphertext, err := aes.Encrypt(version, sharedKey[:], message)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ecdsa: %w", err)
 	}
-	return ciphertext, &tempPrvKey.PublicKey, nil
+	return ciphertext, &ephemeralPrvKey.PublicKey, nil
 }
 
-// Decrypt decrypts a message using ECDH key exchange and AES-256-CBC.
+// Decrypt decrypts a message using ECDH key exchange and AES-256.
 func Decrypt(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -98,7 +98,7 @@ func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Publ
 	// but SHA-2 is used for backward compatibility.
 	sharedKey := sha256.Sum256(exchangedKey)
 
-	// decrypt AES-256-CBC
+	// decrypt AES-256
 	return aes.Decrypt(version, sharedKey[:], ciphertext)
 }
 

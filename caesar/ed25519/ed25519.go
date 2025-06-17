@@ -21,8 +21,8 @@ func Encrypt(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]
 }
 
 func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
-	// generate temporary key pair
-	tempEdPubKey, tempEdPrvKey, err := ed25519.GenerateKey(rand.Reader)
+	// generate ephemeral key pair
+	ephemeralEdPubKey, ephemeralEdPrvKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ed25519: %w", err)
 	}
@@ -34,7 +34,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 	}
 
 	// convert ed25519 private key to x25519 private key
-	xPrvKey, err := toX25519PrivateKey(&tempEdPrvKey)
+	xPrvKey, err := toX25519PrivateKey(&ephemeralEdPrvKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to convert ed25519 private key to X25519 private key: %w", err)
 	}
@@ -50,7 +50,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ed25519: %w", err)
 	}
-	return ciphertext, &tempEdPubKey, nil
+	return ciphertext, &ephemeralEdPubKey, nil
 }
 
 // Decrypt decrypts a message using X25519 key exchange and AES-256-CBC.
