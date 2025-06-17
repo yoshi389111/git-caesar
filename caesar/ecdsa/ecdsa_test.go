@@ -28,6 +28,15 @@ func Test_Encrypt_Decrypt_P256_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -35,6 +44,15 @@ func Test_Encrypt_Decrypt_P256_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }
 
@@ -51,6 +69,15 @@ func Test_Encrypt_Decrypt_P384_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -58,6 +85,15 @@ func Test_Encrypt_Decrypt_P384_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }
 
@@ -74,6 +110,15 @@ func Test_Encrypt_Decrypt_P521_V1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(ciphertext, ciphertext2) {
+		t.Fatal("ciphertexts should not be equal")
+	}
+
 	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
 	if err != nil {
 		t.Fatal(err)
@@ -81,6 +126,15 @@ func Test_Encrypt_Decrypt_P521_V1(t *testing.T) {
 
 	if !bytes.Equal(message, plaintext) {
 		t.Fatal(hex.Dump(plaintext))
+	}
+
+	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(message, plaintext2) {
+		t.Fatal(hex.Dump(plaintext2))
 	}
 }
 
