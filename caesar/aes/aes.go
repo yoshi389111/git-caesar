@@ -8,6 +8,7 @@ import (
 	"fmt"
 )
 
+// Encrypt encrypts a message using AES-256.
 func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -17,8 +18,10 @@ func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
 	}
 }
 
+// Encrypt encrypts a message using AES-256-CBC with PKCS#7 padding.
 func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	// pad the message with PKCS#7
 	padding := aes.BlockSize - len(plaintext)%aes.BlockSize
 	padtext := append(plaintext, bytes.Repeat([]byte{byte(padding)}, padding)...)
@@ -44,6 +47,7 @@ func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
+// Decrypt decrypts a message using AES-256.
 func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case "1":
@@ -53,8 +57,10 @@ func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
 	}
 }
 
+// Decrypt decrypts a message using AES-256-CBC with PKCS#7 padding.
 func decryptV1(version string, key, ciphertext []byte) ([]byte, error) {
 	_ = version // unused parameter
+
 	// Check if ciphertext is long enough to contain an IV
 	if len(ciphertext) < aes.BlockSize {
 		return nil, fmt.Errorf("ciphertext too short")
