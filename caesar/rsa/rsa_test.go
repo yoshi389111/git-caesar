@@ -40,7 +40,7 @@ func Test_EncryptDecryptRsa(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-
+			// RSA encryption should produce non-deterministic ciphertexts due to random padding.
 			if bytes.Equal(ciphertext, ciphertext2) {
 				t.Fatal("ciphertext should not be equal, but they are")
 			}
