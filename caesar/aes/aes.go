@@ -137,7 +137,7 @@ func decryptV2(key, ciphertext []byte) ([]byte, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AES cipher block for encryption: %w", err)
+		return nil, fmt.Errorf("failed to create AES cipher block for decryption: %w", err)
 	}
 
 	gcm, err := cipher.NewGCM(block)
