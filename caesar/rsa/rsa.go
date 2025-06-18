@@ -38,11 +38,13 @@ func decryptV1(prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 	return rsa.DecryptOAEP(sha256.New(), rand.Reader, prvKey, ciphertext, []byte{})
 }
 
-// Sign signs a message using RSA PKCS#1 v1.5 with SHA-256.
+// Sign signs a message using RSA.
 func Sign(version string, prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return signV1(prvKey, message)
+	case common.Version2:
+		return signV2(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -53,11 +55,18 @@ func signV1(prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	return rsa.SignPKCS1v15(nil, prvKey, crypto.SHA256, hash[:])
 }
 
-// Verify verifies a signature using RSA PKCS#1 v1.5 with SHA-256.
+func signV2(prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
+	hash := sha256.Sum256(message)
+	return rsa.SignPSS(rand.Reader, prvKey, crypto.SHA256, hash[:], nil)
+}
+
+// Verify verifies a signature using RSA.
 func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 	switch version {
 	case common.Version1:
 		return verifyV1(pubKey, message, sig)
+	case common.Version2:
+		return verifyV2(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
@@ -66,5 +75,11 @@ func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 func verifyV1(pubKey *rsa.PublicKey, message, sig []byte) bool {
 	hash := sha256.Sum256(message)
 	err := rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hash[:], sig)
+	return err == nil
+}
+
+func verifyV2(pubKey *rsa.PublicKey, message, sig []byte) bool {
+	hash := sha256.Sum256(message)
+	err := rsa.VerifyPSS(pubKey, crypto.SHA256, hash[:], sig, nil)
 	return err == nil
 }

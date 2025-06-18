@@ -100,6 +100,24 @@ func Test_SignVerifyRsa_V1(t *testing.T) {
 	}
 }
 
+func Test_SignVerifyRsa_V2(t *testing.T) {
+	message := []byte("hello world --------------- 0521")
+	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubKey := &prvKey.PublicKey
+
+	sig, err := Sign("2", prvKey, message)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !Verify("2", pubKey, message, sig) {
+		t.Fatal("verify failed")
+	}
+}
+
 func Test_NewEnvelope_ExtractShareKey_V1(t *testing.T) {
 	message := []byte("hello world --------------- 1024") // 32byte
 
@@ -154,6 +172,33 @@ func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
 	}
 
 	if !rsaPubKey.Verify("1", message, sig) {
+		t.Fatal("verify failed")
+	}
+}
+
+func Test_PrivateKeySign_PublickKeyVerify_V2(t *testing.T) {
+	message := []byte("hello world --------------- 1024") // 32byte
+
+	prvKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubKey := &prvKey.PublicKey
+
+	sshPubKey, err := ssh.NewPublicKey(pubKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rsaPrvKey := NewPrivateKey(*prvKey)
+	rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+
+	sig, err := rsaPrvKey.Sign("2", message)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !rsaPubKey.Verify("2", message, sig) {
 		t.Fatal("verify failed")
 	}
 }
