@@ -11,7 +11,7 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
-// Encrypt encrypts a message using X25519 key exchange and AES-256-CBC.
+// Encrypt encrypts a message using X25519 key exchange and AES-256.
 func Encrypt(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
 	switch version {
 	case common.Version1:
@@ -46,7 +46,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 		return nil, nil, fmt.Errorf("failed to X25519 key exchange: %w", err)
 	}
 
-	// encrypt AES-256-CBC
+	// encrypt AES-256
 	ciphertext, err := aes.Encrypt(version, sharedKey, message)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ed25519: %w", err)
@@ -54,7 +54,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 	return ciphertext, &ephemeralEdPubKey, nil
 }
 
-// Decrypt decrypts a message using X25519 key exchange and AES-256-CBC.
+// Decrypt decrypts a message using X25519 key exchange and AES-256.
 func Decrypt(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
@@ -84,7 +84,7 @@ func decryptV1(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.
 		return nil, fmt.Errorf("failed to X25519 key exchange: %w", err)
 	}
 
-	// decrypt AES-256-CBC
+	// decrypt AES-256
 	return aes.Decrypt(version, sharedKey, ciphertext)
 }
 

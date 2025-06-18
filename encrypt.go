@@ -15,7 +15,7 @@ import (
 
 func encrypt(version string, peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, plaintext []byte) ([]byte, error) {
 
-	// generate shared key (for AES-256-CBC)
+	// generate shared key (for AES-256)
 	shareKey := make([]byte, 32)
 	_, err := rand.Read(shareKey)
 	if err != nil {
