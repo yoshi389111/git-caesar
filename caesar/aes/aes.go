@@ -6,12 +6,14 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
+
+	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
 // Encrypt encrypts a message using AES-256.
 func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return encryptV1(version, key, plaintext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -50,7 +52,7 @@ func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
 // Decrypt decrypts a message using AES-256.
 func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return decryptV1(version, key, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
