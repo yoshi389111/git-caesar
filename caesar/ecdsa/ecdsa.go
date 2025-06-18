@@ -8,12 +8,13 @@ import (
 	"math/big"
 
 	"github.com/yoshi389111/git-caesar/caesar/aes"
+	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
 // Encrypt encrypts a message using ECDH key exchange and AES-256.
 func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return encryptV1(version, peersPubKey, message)
 	default:
 		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -65,7 +66,7 @@ func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]
 // Decrypt decrypts a message using ECDH key exchange and AES-256.
 func Decrypt(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return decryptV1(version, prvKey, peersPubKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -105,16 +106,14 @@ func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Publ
 // Sign creates an ECDSA signature for the given message.
 func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
-	case "1":
-		return signV1(version, prvKey, message)
+	case common.Version1:
+		return signV1(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
-func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
-	_ = version // unused parameter
-
+func signV1(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	hash := sha256.Sum256(message)
 	sig, err := ecdsa.SignASN1(rand.Reader, prvKey, hash[:])
 	if err != nil {
@@ -126,16 +125,14 @@ func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, e
 // Verify checks an ECDSA signature for the given message.
 func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	switch version {
-	case "1":
-		return verifyV1(version, pubKey, message, sig)
+	case common.Version1:
+		return verifyV1(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
 }
 
-func verifyV1(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
-	_ = version // unused parameter
-
+func verifyV1(pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	hash := sha256.Sum256(message)
 	return ecdsa.VerifyASN1(pubKey, hash[:], sig)
 }

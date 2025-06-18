@@ -8,11 +8,15 @@ import (
 	"runtime/debug"
 
 	flags "github.com/jessevdk/go-flags"
+
+	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
 type VersionType string
 
-var caesarJsonVersions = []VersionType{"1"}
+var caesarJsonVersions = []VersionType{
+	VersionType(common.Version1),
+}
 
 func IsValidCaesarJsonVersion(v string) bool {
 	for _, allowed := range caesarJsonVersions {

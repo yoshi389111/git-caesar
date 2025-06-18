@@ -8,12 +8,13 @@ import (
 	"fmt"
 
 	"github.com/yoshi389111/git-caesar/caesar/aes"
+	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
-// Encrypt encrypts a message using X25519 key exchange and AES-256-CBC.
+// Encrypt encrypts a message using X25519 key exchange and AES-256.
 func Encrypt(version string, otherPubKey *ed25519.PublicKey, message []byte) ([]byte, *ed25519.PublicKey, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return encryptV1(version, otherPubKey, message)
 	default:
 		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -45,7 +46,7 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 		return nil, nil, fmt.Errorf("failed to X25519 key exchange: %w", err)
 	}
 
-	// encrypt AES-256-CBC
+	// encrypt AES-256
 	ciphertext, err := aes.Encrypt(version, sharedKey, message)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to AES encryption for ed25519: %w", err)
@@ -53,10 +54,10 @@ func encryptV1(version string, otherPubKey *ed25519.PublicKey, message []byte) (
 	return ciphertext, &ephemeralEdPubKey, nil
 }
 
-// Decrypt decrypts a message using X25519 key exchange and AES-256-CBC.
+// Decrypt decrypts a message using X25519 key exchange and AES-256.
 func Decrypt(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return decryptV1(version, prvKey, otherPubKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -83,7 +84,7 @@ func decryptV1(version string, prvKey *ed25519.PrivateKey, otherPubKey *ed25519.
 		return nil, fmt.Errorf("failed to X25519 key exchange: %w", err)
 	}
 
-	// decrypt AES-256-CBC
+	// decrypt AES-256
 	return aes.Decrypt(version, sharedKey, ciphertext)
 }
 
@@ -103,9 +104,9 @@ func exchangeKey(xPrvKey *ecdh.PrivateKey, xPubKey *ecdh.PublicKey) ([]byte, err
 // Sign creates a signature for the given message using the provided private key.
 func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
-	case "1":
+	case common.Version1:
 		return signV1(prvKey, message)
-	case "2":
+	case common.Version2:
 		return signV2(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -129,9 +130,9 @@ func signV2(prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 // Verify checks if the signature is valid for the given message and public key.
 func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
 	switch version {
-	case "1":
+	case common.Version1:
 		return verifyV1(pubKey, message, sig)
-	case "2":
+	case common.Version2:
 		return verifyV2(pubKey, message, sig)
 	default:
 		return false // unknown version
