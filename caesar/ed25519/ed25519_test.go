@@ -115,7 +115,7 @@ func Test_NewEnvelope_ExtractShareKey_V1(t *testing.T) {
 	}
 }
 
-func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
+func Test_PrivateKeySign_PublicKeyVerify_V1(t *testing.T) {
 	message := []byte("hello world --------------- 1024") // 32byte
 
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
@@ -141,7 +141,7 @@ func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
 	}
 }
 
-func Test_PrivateKeySign_PublickKeyVerify_V2(t *testing.T) {
+func Test_PrivateKeySign_PublicKeyVerify_V2(t *testing.T) {
 	message := []byte("hello world --------------- 1024") // 32byte
 
 	pubKey, prvKey, err := ed25519.GenerateKey(rand.Reader)
