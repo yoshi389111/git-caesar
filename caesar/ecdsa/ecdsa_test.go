@@ -7,7 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/asn1"
-	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -15,201 +15,210 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Test_Encrypt_Decrypt_P256_V1(t *testing.T) {
+func toCurve(curveName string) (elliptic.Curve, error) {
+	switch curveName {
+	case "P256":
+		return elliptic.P256(), nil
+	case "P384":
+		return elliptic.P384(), nil
+	case "P521":
+		return elliptic.P521(), nil
+	default:
+		return nil, fmt.Errorf("unknown curve: %s", curveName)
+	}
+}
+
+func Test_Encrypt_Decrypt_ecdsa(t *testing.T) {
+	cases := map[string]struct {
+		curveName     string
+		formatVersion string
+	}{
+		"ecdsa256_formatVer1": {"P256", "1"},
+
+		"ecdsa256_formatVer2": {"P256", "2"},
+		"ecdsa384_formatVer2": {"P384", "2"},
+		"ecdsa521_formatVer2": {"P521", "2"},
+	}
+
 	message := []byte("hello world --------------- 0256") // 32byte
-	alicePrvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	alicePubKey := &alicePrvKey.PublicKey
+	for name, tc := range cases {
+		t.Run("Encrypt_Decrypt_"+name, func(t *testing.T) {
+			curve, err := toCurve(tc.curveName)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ciphertext, bobPubKey, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
+			alicePrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			alicePubKey := &alicePrvKey.PublicKey
 
-	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
+			ciphertext, bobPubKey, err := Encrypt(tc.formatVersion, alicePubKey, []byte(message))
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if bytes.Equal(ciphertext, ciphertext2) {
-		t.Fatal("ciphertexts should not be equal")
-	}
+			ciphertext2, bobPubKey2, err := Encrypt(tc.formatVersion, alicePubKey, []byte(message))
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
+			// encryption should produce non-deterministic ciphertexts due to random padding.
+			if bytes.Equal(ciphertext, ciphertext2) {
+				t.Fatal("ciphertexts should not be equal")
+			}
 
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
-	}
+			plaintext, err := Decrypt(tc.formatVersion, alicePrvKey, bobPubKey, ciphertext)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
-	if err != nil {
-		t.Fatal(err)
-	}
+			if !bytes.Equal(message, plaintext) {
+				t.Fatalf("decrypted message mismatch:\nexpected: %x\nactual: %x", message, plaintext)
+			}
 
-	if !bytes.Equal(message, plaintext2) {
-		t.Fatal(hex.Dump(plaintext2))
-	}
-}
+			plaintext2, err := Decrypt(tc.formatVersion, alicePrvKey, bobPubKey2, ciphertext2)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-func Test_Encrypt_Decrypt_P384_V1(t *testing.T) {
-	message := []byte("hello world --------------- 0384") // 32byte
-	alicePrvKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	alicePubKey := &alicePrvKey.PublicKey
-
-	ciphertext, bobPubKey, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if bytes.Equal(ciphertext, ciphertext2) {
-		t.Fatal("ciphertexts should not be equal")
-	}
-
-	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
-	}
-
-	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext2) {
-		t.Fatal(hex.Dump(plaintext2))
+			if !bytes.Equal(message, plaintext2) {
+				t.Fatalf("decrypted message mismatch:\nexpected: %x\nactual: %x", message, plaintext2)
+			}
+		})
 	}
 }
 
-func Test_Encrypt_Decrypt_P521_V1(t *testing.T) {
-	message := []byte("hello world --------------- 0521") // 32byte
-	alicePrvKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	alicePubKey := &alicePrvKey.PublicKey
+func Test_Sign_Verify_ecdsa(t *testing.T) {
+	cases := map[string]struct {
+		curveName     string
+		formatVersion string
+	}{
+		"ecdsa256_formatVer1": {"P256", "1"},
 
-	ciphertext, bobPubKey, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ciphertext2, bobPubKey2, err := Encrypt("1", alicePubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
+		"ecdsa256_formatVer2": {"P256", "2"},
+		"ecdsa384_formatVer2": {"P384", "2"},
+		"ecdsa521_formatVer2": {"P521", "2"},
 	}
 
-	if bytes.Equal(ciphertext, ciphertext2) {
-		t.Fatal("ciphertexts should not be equal")
-	}
-
-	plaintext, err := Decrypt("1", alicePrvKey, bobPubKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
-	}
-
-	plaintext2, err := Decrypt("1", alicePrvKey, bobPubKey2, ciphertext2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext2) {
-		t.Fatal(hex.Dump(plaintext2))
-	}
-}
-
-func Test_Sign_Verify_P521_V1(t *testing.T) {
 	message := []byte("hello world --------------- 0521")
-	prvKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
+	for name, tc := range cases {
+		t.Run("Sign_Verify_"+name, func(t *testing.T) {
+			curve, err := toCurve(tc.curveName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			prvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
 
-	sig, err := Sign("1", prvKey, message)
-	if err != nil {
-		t.Fatal(err)
-	}
+			sig, err := Sign(tc.formatVersion, prvKey, message)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if !Verify("1", pubKey, message, sig) {
-		t.Fatal("verify failed")
-	}
-}
+			if !Verify(tc.formatVersion, pubKey, message, sig) {
+				t.Fatal("verify failed")
+			}
 
-func Test_NewEnvelope_ExtractShareKey_V1(t *testing.T) {
-	message := []byte("hello world --------------- 1024") // 32byte
-
-	prvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
-
-	sshPubKey, err := ssh.NewPublicKey(pubKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ecdsaPrvKey := NewPrivateKey(*prvKey)
-	ecdsaPubKey := NewPublicKey(*pubKey, sshPubKey)
-
-	addInfo, err := ecdsaPubKey.NewEnvelope("1", message)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	decrypted, err := ecdsaPrvKey.ExtractShareKey("1", addInfo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(message, decrypted) {
-		t.Fatal(hex.Dump(decrypted))
+		})
 	}
 }
 
-func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
+func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
+	cases := map[string]struct {
+		curveName     string
+		formatVersion string
+	}{
+		"ecdsa256_formatVer1": {"P256", "1"},
+
+		"ecdsa256_formatVer2": {"P256", "2"},
+		"ecdsa384_formatVer2": {"P384", "2"},
+		"ecdsa521_formatVer2": {"P521", "2"},
+	}
+
+	message := []byte("hello world --------------- 1024") // 32byte
+	for name, tc := range cases {
+		t.Run("NewEnvelope_ExtractShareKey_"+name, func(t *testing.T) {
+			curve, err := toCurve(tc.curveName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			prvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+
+			sshPubKey, err := ssh.NewPublicKey(pubKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ecdsaPrvKey := NewPrivateKey(*prvKey)
+			ecdsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+
+			envelope, err := ecdsaPubKey.NewEnvelope(tc.formatVersion, message)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			decrypted, err := ecdsaPrvKey.ExtractShareKey(tc.formatVersion, envelope)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(message, decrypted) {
+				t.Fatalf("decrypted message mismatch:\nexpected: %x\nactual: %x", message, decrypted)
+			}
+		})
+	}
+}
+
+func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
+	cases := map[string]struct {
+		curveName     string
+		formatVersion string
+	}{
+		"ecdsa256_formatVer1": {"P256", "1"},
+
+		"ecdsa256_formatVer2": {"P256", "2"},
+		"ecdsa384_formatVer2": {"P384", "2"},
+		"ecdsa521_formatVer2": {"P521", "2"},
+	}
+
 	message := []byte("hello world --------------- 1024") // 32byte
 
-	prvKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
-	sshPubKey, err := ssh.NewPublicKey(pubKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	for name, tc := range cases {
+		t.Run("PrivateKeySign_PublicKeyVerify_"+name, func(t *testing.T) {
+			curve, err := toCurve(tc.curveName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			prvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+			sshPubKey, err := ssh.NewPublicKey(pubKey)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ecdsaPrvKey := NewPrivateKey(*prvKey)
-	ecdsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+			ecdsaPrvKey := NewPrivateKey(*prvKey)
+			ecdsaPubKey := NewPublicKey(*pubKey, sshPubKey)
 
-	sig, err := ecdsaPrvKey.Sign("1", message)
-	if err != nil {
-		t.Fatal(err)
-	}
+			sig, err := ecdsaPrvKey.Sign(tc.formatVersion, message)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if !ecdsaPubKey.Verify("1", message, sig) {
-		t.Fatal("verify failed")
+			if !ecdsaPubKey.Verify(tc.formatVersion, message, sig) {
+				t.Fatal("verify failed")
+			}
+		})
 	}
 }
 
@@ -287,7 +296,7 @@ func Test_Encrypt_Compatibility_V1(t *testing.T) {
 	}
 
 	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
+		t.Fatalf("decrypted message mismatch:\nexpected: %x\nactual: %x", message, plaintext)
 	}
 }
 
@@ -320,6 +329,6 @@ func Test_Decrypt_Compatibility_V1(t *testing.T) {
 	}
 
 	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
+		t.Fatalf("decrypted message mismatch:\nexpected: %x\nactual: %x", message, plaintext)
 	}
 }

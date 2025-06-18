@@ -2,6 +2,7 @@ package ecdsa
 
 import (
 	"crypto/ecdsa"
+	"crypto/hkdf"
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
@@ -11,11 +12,17 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
+const (
+	infoV2 = "git-caesar/ecdh-key-exchange/v2"
+)
+
 // Encrypt encrypts a message using ECDH key exchange and AES-256.
 func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
 	switch version {
 	case common.Version1:
 		return encryptV1(version, peersPubKey, message)
+	case common.Version2:
+		return encryptV2(version, peersPubKey, message)
 	default:
 		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -30,18 +37,8 @@ func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]
 		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ecdsa: %w", err)
 	}
 
-	ecdhPrvKey, err := ephemeralPrvKey.ECDH()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
-	}
-
-	ecdhPubKey, err := peersPubKey.ECDH()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get ECDH public key for ecdsa: %w", err)
-	}
-
 	// key exchange
-	exchangedKey, err := ecdhPrvKey.ECDH(ecdhPubKey)
+	exchangedKey, err := keyExchange(ephemeralPrvKey, peersPubKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
 	}
@@ -63,29 +60,58 @@ func encryptV1(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]
 	return ciphertext, &ephemeralPrvKey.PublicKey, nil
 }
 
+func encryptV2(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]byte, *ecdsa.PublicKey, error) {
+	curve := peersPubKey.Curve
+
+	// generate ephemeral private key
+	ephemeralPrvKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate ephemeral key pair for ecdsa: %w", err)
+	}
+
+	// key exchange
+	exchangedKey, err := keyExchange(ephemeralPrvKey, peersPubKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
+	}
+
+	salt := make([]byte, 32) // 32 bytes salt for HKDF
+	if _, err := rand.Read(salt); err != nil {
+		return nil, nil, fmt.Errorf("failed to generate salt for HKDF: %w", err)
+	}
+
+	sharedKey, err := hkdf.Key(sha256.New, exchangedKey, salt, infoV2, 32)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create HKDF key for ecdsa: %w", err)
+	}
+
+	// encrypt AES-256
+	ciphertext, err := aes.Encrypt(version, sharedKey[:], message)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to AES encryption for ecdsa: %w", err)
+	}
+
+	// prepend salt to ciphertext
+	ciphertext = append(salt, ciphertext...)
+
+	return ciphertext, &ephemeralPrvKey.PublicKey, nil
+}
+
 // Decrypt decrypts a message using ECDH key exchange and AES-256.
 func Decrypt(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return decryptV1(version, prvKey, peersPubKey, ciphertext)
+	case common.Version2:
+		return decryptV2(version, prvKey, peersPubKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
 func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
-	ecdhPrvKey, err := prvKey.ECDH()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
-	}
-
-	ecdhPubKey, err := peersPubKey.ECDH()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ECDH public key for ecdsa: %w", err)
-	}
-
 	// key exchange
-	exchangedKey, err := ecdhPrvKey.ECDH(ecdhPubKey)
+	exchangedKey, err := keyExchange(prvKey, peersPubKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
 	}
@@ -103,10 +129,56 @@ func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Publ
 	return aes.Decrypt(version, sharedKey[:], ciphertext)
 }
 
+func decryptV2(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey, ciphertext []byte) ([]byte, error) {
+	// key exchange
+	exchangedKey, err := keyExchange(prvKey, peersPubKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
+	}
+
+	if len(ciphertext) < 32 {
+		return nil, fmt.Errorf("ciphertext is too short for ecdsa decryption")
+	}
+
+	// extract salt from the beginning of the ciphertext
+	salt := ciphertext[:32]
+
+	// remove salt from ciphertext
+	ciphertext = ciphertext[32:]
+
+	// hash the exchanged key using HKDF
+	sharedKey, err := hkdf.Key(sha256.New, exchangedKey, salt, infoV2, 32)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HKDF key for ecdsa: %w", err)
+	}
+
+	// decrypt AES-256
+	return aes.Decrypt(version, sharedKey[:], ciphertext)
+}
+
+func keyExchange(prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.PublicKey) ([]byte, error) {
+	ecdhPrvKey, err := prvKey.ECDH()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ECDH private key for ecdsa: %w", err)
+	}
+
+	ecdhPubKey, err := peersPubKey.ECDH()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ECDH public key for ecdsa: %w", err)
+	}
+
+	// key exchange
+	exchangedKey, err := ecdhPrvKey.ECDH(ecdhPubKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform ECDH key exchange for ecdsa: %w", err)
+	}
+	return exchangedKey, nil
+}
+
 // Sign creates an ECDSA signature for the given message.
 func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
-	case common.Version1:
+	case common.Version1, common.Version2:
 		return signV1(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -125,7 +197,7 @@ func signV1(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 // Verify checks an ECDSA signature for the given message.
 func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	switch version {
-	case common.Version1:
+	case common.Version1, common.Version2:
 		return verifyV1(pubKey, message, sig)
 	default:
 		return false // unknown version
