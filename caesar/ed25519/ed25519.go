@@ -104,19 +104,25 @@ func exchangeKey(xPrvKey *ecdh.PrivateKey, xPubKey *ecdh.PublicKey) ([]byte, err
 func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
 	case "1":
-		return signV1(version, prvKey, message)
+		return signV1(prvKey, message)
+	case "2":
+		return signV2(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
-func signV1(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
-	_ = version // unused parameter
-
+func signV1(prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
 	// In the case of ed25519, hashing before signing/verifying is not required,
 	// but it is done for backwards compatibility.
 	hash := sha256.Sum256(message)
+
 	sig := ed25519.Sign(*prvKey, hash[:])
+	return sig, nil
+}
+
+func signV2(prvKey *ed25519.PrivateKey, message []byte) ([]byte, error) {
+	sig := ed25519.Sign(*prvKey, message)
 	return sig, nil
 }
 
@@ -124,17 +130,22 @@ func signV1(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte,
 func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
 	switch version {
 	case "1":
-		return verifyV1(version, pubKey, message, sig)
+		return verifyV1(pubKey, message, sig)
+	case "2":
+		return verifyV2(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
 }
 
-func verifyV1(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool {
-	_ = version // unused parameter
-
+func verifyV1(pubKey *ed25519.PublicKey, message, sig []byte) bool {
 	// In the case of ed25519, hashing before signing/verifying is not required,
 	// but it is done for backwards compatibility.
 	hash := sha256.Sum256(message)
+
 	return ed25519.Verify(*pubKey, hash[:], sig)
+}
+
+func verifyV2(pubKey *ed25519.PublicKey, message, sig []byte) bool {
+	return ed25519.Verify(*pubKey, message, sig)
 }
