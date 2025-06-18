@@ -10,195 +10,302 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func Test_EncryptDecryptRsaOaep1024_V1(t *testing.T) {
+func Test_EncryptDecryptRsa(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+
+		"rsa1024_formatVer2": {1024, "2"},
+		"rsa2048_formatVer2": {2048, "2"},
+		"rsa4096_formatVer2": {4096, "2"},
+	}
+
+	message := []byte("hello world ------------ 32 byte")
+	for name, tc := range cases {
+		t.Run("Encrypt_Decrypt_"+name, func(t *testing.T) {
+			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+
+			ciphertext, err := Encrypt(tc.formatVersion, pubKey, []byte(message))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ciphertext2, err := Encrypt(tc.formatVersion, pubKey, []byte(message))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if bytes.Equal(ciphertext, ciphertext2) {
+				t.Fatal("ciphertext should not be equal, but they are")
+			}
+
+			plaintext, err := Decrypt(tc.formatVersion, prvKey, ciphertext)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !bytes.Equal(message, plaintext) {
+				t.Fatal(hex.Dump(plaintext))
+			}
+
+			plaintext2, err := Decrypt(tc.formatVersion, prvKey, ciphertext2)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !bytes.Equal(message, plaintext2) {
+				t.Fatal(hex.Dump(plaintext2))
+			}
+		})
+	}
+}
+
+func Test_SignVerifyRsa(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+
+		"rsa1024_formatVer2": {1024, "2"},
+		"rsa2048_formatVer2": {2048, "2"},
+		"rsa4096_formatVer2": {4096, "2"},
+	}
+
+	message := []byte("hello world ------------ 32 byte")
+	for name, tc := range cases {
+		t.Run("Sign_Verify_"+name, func(t *testing.T) {
+			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+
+			sig, err := Sign(tc.formatVersion, prvKey, message)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !Verify(tc.formatVersion, pubKey, message, sig) {
+				t.Fatal("verify failed")
+			}
+		})
+	}
+}
+
+func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+		"rsa2048_formatVer2": {2048, "2"},
+	}
+
+	message := []byte("hello world ------------ 32 byte")
+	for name, tc := range cases {
+		t.Run("NewEnvelope_ExtractShareKey_"+name, func(t *testing.T) {
+			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+
+			sshPubKey, err := ssh.NewPublicKey(pubKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rsaPrvKey := NewPrivateKey(*prvKey)
+			rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+
+			addInfo, err := rsaPubKey.NewEnvelope(tc.formatVersion, message)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			decrypted, err := rsaPrvKey.ExtractShareKey(tc.formatVersion, addInfo)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(message, decrypted) {
+				t.Fatal(hex.Dump(decrypted))
+			}
+		})
+	}
+
+}
+
+func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+		"rsa2048_formatVer2": {2048, "2"},
+	}
+
 	message := []byte("hello world --------------- 1024") // 32byte
+	for name, tc := range cases {
+		t.Run("PrivateKey_PublicKey_"+name, func(t *testing.T) {
+			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
 
-	prvKey, err := rsa.GenerateKey(rand.Reader, 1024)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
+			sshPubKey, err := ssh.NewPublicKey(pubKey)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ciphertext, err := Encrypt("1", pubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
+			rsaPrvKey := NewPrivateKey(*prvKey)
+			rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
 
-	plaintext, err := Decrypt("1", prvKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
+			sig, err := rsaPrvKey.Sign(tc.formatVersion, message)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
+			if !rsaPubKey.Verify(tc.formatVersion, message, sig) {
+				t.Fatal("verify failed")
+			}
+		})
 	}
 }
 
-func Test_EncryptDecryptRsaOaep2048_V1(t *testing.T) {
-	message := []byte("hello world --------------- 2048") // 32byte
-
+func Test_EncryptDecryptRsa_InvalidVersion(t *testing.T) {
 	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
 	pubKey := &prvKey.PublicKey
+	message := []byte("test message")
 
-	ciphertext, err := Encrypt("1", pubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
+	_, err = Encrypt("invalid", pubKey, message)
+	if err == nil {
+		t.Fatal("expected error for invalid version in Encrypt")
 	}
 
-	plaintext, err := Decrypt("1", prvKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
+	_, err = Decrypt("invalid", prvKey, message)
+	if err == nil {
+		t.Fatal("expected error for invalid version in Decrypt")
 	}
 }
 
-func Test_EncryptDecryptRsaOaep4096_V1(t *testing.T) {
-	message := []byte("hello world --------------- 4096") // 32byte
-
-	prvKey, err := rsa.GenerateKey(rand.Reader, 4096)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
-
-	ciphertext, err := Encrypt("1", pubKey, []byte(message))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	plaintext, err := Decrypt("1", prvKey, ciphertext)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(message, plaintext) {
-		t.Fatal(hex.Dump(plaintext))
-	}
-}
-
-func Test_SignVerifyRsa_V1(t *testing.T) {
-	message := []byte("hello world --------------- 0521")
+func Test_SignVerifyRsa_InvalidVersion(t *testing.T) {
 	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
 	pubKey := &prvKey.PublicKey
+	message := []byte("test message")
+
+	_, err = Sign("invalid", prvKey, message)
+	if err == nil {
+		t.Fatal("expected error for invalid version in Sign")
+	}
 
 	sig, err := Sign("1", prvKey, message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !Verify("1", pubKey, message, sig) {
-		t.Fatal("verify failed")
+	if Verify("invalid", pubKey, message, sig) {
+		t.Fatal("expected false for invalid version in Verify")
 	}
 }
 
-func Test_SignVerifyRsa_V2(t *testing.T) {
-	message := []byte("hello world --------------- 0521")
-	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
+func Test_EncryptDecryptRsa_WrongKey(t *testing.T) {
+	prvKey1, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pubKey := &prvKey.PublicKey
+	prvKey2, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubKey1 := &prvKey1.PublicKey
+	message := []byte("test message")
 
-	sig, err := Sign("2", prvKey, message)
+	ciphertext, err := Encrypt("1", pubKey1, message)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !Verify("2", pubKey, message, sig) {
-		t.Fatal("verify failed")
+	_, err = Decrypt("1", prvKey2, ciphertext)
+	if err == nil {
+		t.Fatal("expected error when decrypting with wrong private key")
 	}
 }
 
-func Test_NewEnvelope_ExtractShareKey_V1(t *testing.T) {
-	message := []byte("hello world --------------- 1024") // 32byte
-
-	prvKey, err := rsa.GenerateKey(rand.Reader, 1024)
-	if err != nil {
-		t.Fatal(err)
+func Test_SignVerifyRsa_WrongKey(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+		"rsa2048_formatVer2": {2048, "2"},
 	}
-	pubKey := &prvKey.PublicKey
+	for name, tc := range cases {
+		t.Run("Sign_Verify_wrong_key_"+name, func(t *testing.T) {
 
-	sshPubKey, err := ssh.NewPublicKey(pubKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+			prvKey1, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			prvKey2, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey2 := &prvKey2.PublicKey
+			message := []byte("test message")
 
-	rsaPrvKey := NewPrivateKey(*prvKey)
-	rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+			sig, err := Sign(tc.formatVersion, prvKey1, message)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	addInfo, err := rsaPubKey.NewEnvelope("1", message)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	decrypted, err := rsaPrvKey.ExtractShareKey("1", addInfo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(message, decrypted) {
-		t.Fatal(hex.Dump(decrypted))
-	}
-}
-
-func Test_PrivateKeySign_PublickKeyVerify_V1(t *testing.T) {
-	message := []byte("hello world --------------- 1024") // 32byte
-
-	prvKey, err := rsa.GenerateKey(rand.Reader, 1024)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
-
-	sshPubKey, err := ssh.NewPublicKey(pubKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rsaPrvKey := NewPrivateKey(*prvKey)
-	rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
-
-	sig, err := rsaPrvKey.Sign("1", message)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !rsaPubKey.Verify("1", message, sig) {
-		t.Fatal("verify failed")
+			if Verify(tc.formatVersion, pubKey2, message, sig) {
+				t.Fatal("expected verify to fail with wrong public key")
+			}
+		})
 	}
 }
 
-func Test_PrivateKeySign_PublickKeyVerify_V2(t *testing.T) {
-	message := []byte("hello world --------------- 1024") // 32byte
-
-	prvKey, err := rsa.GenerateKey(rand.Reader, 1024)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pubKey := &prvKey.PublicKey
-
-	sshPubKey, err := ssh.NewPublicKey(pubKey)
-	if err != nil {
-		t.Fatal(err)
+func Test_SignVerifyRsa_ModifiedMessage(t *testing.T) {
+	cases := map[string]struct {
+		keyLength     int
+		formatVersion string
+	}{
+		"rsa2048_formatVer1": {2048, "1"},
+		"rsa2048_formatVer2": {2048, "2"},
 	}
 
-	rsaPrvKey := NewPrivateKey(*prvKey)
-	rsaPubKey := NewPublicKey(*pubKey, sshPubKey)
+	for name, tc := range cases {
+		t.Run("Sign_Verify_modified_message/"+name, func(t *testing.T) {
 
-	sig, err := rsaPrvKey.Sign("2", message)
-	if err != nil {
-		t.Fatal(err)
-	}
+			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pubKey := &prvKey.PublicKey
+			message := []byte("test message")
+			sig, err := Sign(tc.formatVersion, prvKey, message)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	if !rsaPubKey.Verify("2", message, sig) {
-		t.Fatal("verify failed")
+			modified := []byte("test message!")
+			if Verify(tc.formatVersion, pubKey, modified, sig) {
+				t.Fatal("expected verify to fail with modified message")
+			}
+		})
 	}
 }

@@ -10,11 +10,17 @@ import (
 	"github.com/yoshi389111/git-caesar/caesar/common"
 )
 
+const (
+	LabelV2 = "git-caesar/rsa-encrypt/v2"
+)
+
 // Encrypt encrypts a message using RSA OAEP with SHA-256.
 func Encrypt(version string, pubKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return encryptV1(pubKey, plaintext)
+	case common.Version2:
+		return encryptV2(pubKey, plaintext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -24,11 +30,17 @@ func encryptV1(pubKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, plaintext, []byte{})
 }
 
+func encryptV2(pubKey *rsa.PublicKey, plaintext []byte) ([]byte, error) {
+	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, plaintext, []byte(LabelV2))
+}
+
 // Decrypt decrypts a message using RSA OAEP with SHA-256.
 func Decrypt(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return decryptV1(prvKey, ciphertext)
+	case common.Version2:
+		return decryptV2(prvKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -36,6 +48,10 @@ func Decrypt(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte,
 
 func decryptV1(prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
 	return rsa.DecryptOAEP(sha256.New(), rand.Reader, prvKey, ciphertext, []byte{})
+}
+
+func decryptV2(prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error) {
+	return rsa.DecryptOAEP(sha256.New(), rand.Reader, prvKey, ciphertext, []byte(LabelV2))
 }
 
 // Sign signs a message using RSA.
