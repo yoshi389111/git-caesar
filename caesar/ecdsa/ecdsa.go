@@ -107,15 +107,13 @@ func decryptV1(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Publ
 func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
-		return signV1(version, prvKey, message)
+		return signV1(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
-func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
-	_ = version // unused parameter
-
+func signV1(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	hash := sha256.Sum256(message)
 	sig, err := ecdsa.SignASN1(rand.Reader, prvKey, hash[:])
 	if err != nil {
@@ -128,15 +126,13 @@ func signV1(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, e
 func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	switch version {
 	case common.Version1:
-		return verifyV1(version, pubKey, message, sig)
+		return verifyV1(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
 }
 
-func verifyV1(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
-	_ = version // unused parameter
-
+func verifyV1(pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	hash := sha256.Sum256(message)
 	return ecdsa.VerifyASN1(pubKey, hash[:], sig)
 }

@@ -14,15 +14,14 @@ import (
 func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
-		return encryptV1(version, key, plaintext)
+		return encryptV1(key, plaintext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
 // Encrypt encrypts a message using AES-256-CBC with PKCS#7 padding.
-func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
-	_ = version // unused parameter
+func encryptV1(key, plaintext []byte) ([]byte, error) {
 
 	// pad the message with PKCS#7
 	padding := aes.BlockSize - len(plaintext)%aes.BlockSize
@@ -53,15 +52,14 @@ func encryptV1(version string, key, plaintext []byte) ([]byte, error) {
 func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
-		return decryptV1(version, key, ciphertext)
+		return decryptV1(key, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
 }
 
 // Decrypt decrypts a message using AES-256-CBC with PKCS#7 padding.
-func decryptV1(version string, key, ciphertext []byte) ([]byte, error) {
-	_ = version // unused parameter
+func decryptV1(key, ciphertext []byte) ([]byte, error) {
 
 	// Check if ciphertext is long enough to contain an IV
 	if len(ciphertext) < aes.BlockSize {
