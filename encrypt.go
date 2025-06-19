@@ -50,7 +50,7 @@ func encrypt(version string, peerPubKeys []caesar.PublicKey, prvKey caesar.Priva
 		return nil, fmt.Errorf("the authentication key could not be obtained from the private key during encryption: %w", err)
 	}
 	caesarJson := &CaesarJson{
-		Version:   "1",
+		Version:   version,
 		Signature: base64.StdEncoding.EncodeToString(sig),
 		Signer:    selfAuthKey,
 		Envelopes: envelopes,

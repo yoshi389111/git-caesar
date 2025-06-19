@@ -61,7 +61,7 @@ func Test_Encrypt_Decrypt_ed25519(t *testing.T) {
 	}
 }
 
-func Test_Sign_Verify_V1(t *testing.T) {
+func Test_Sign_Verify(t *testing.T) {
 	cases := map[string]struct {
 		formatVersion string
 	}{

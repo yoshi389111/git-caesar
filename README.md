@@ -62,7 +62,7 @@ Application Options:
 * `-i` Input file. Plaintext file to be encrypted when encrypting. When decrypting, please specify the ciphertext file to be decrypted. If no options are specified, it reads from standard input.
 * `-o` output file. Outputs to standard output if no option is specified.
 * Specify `-d` for decrypt mode. Encrypted mode if not specified.
-* `-F` specifies the file version of the cipher file. Currently, only version 1 is valid.
+* `-F` specifies the file version of the cipher file. Currently, versions 1 and 2 are valid.
 
 ## Supported algorithms
 

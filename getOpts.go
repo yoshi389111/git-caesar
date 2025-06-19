@@ -16,6 +16,7 @@ type VersionType string
 
 var caesarJsonVersions = []VersionType{
 	VersionType(common.Version1),
+	VersionType(common.Version2),
 }
 
 func IsValidCaesarJsonVersion(v string) bool {
