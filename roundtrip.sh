@@ -1,67 +1,83 @@
 #!/bin/sh
-set -eu pipefail
+set -eu
 
-WORKDIR=$(mktemp -d)
+WORKDIR=$(mktemp -d -t "git-caesar-roundtrip-XXXXXX" )
+GIT_CAESAR=./target/git-caesar
 
-if [ ! -x target/git-caesar ]; then
-    echo "git-caesar not found." >&2
+if [ ! -x "$GIT_CAESAR" ]; then
+    echo "${GIT_CAESAR} not found." >&2
     exit 1
 fi
 
-cp -p target/git-caesar "$WORKDIR"
+generate_keys() {
+    ssh-keygen -t rsa -b 2048 -f "$WORKDIR/${1}_rsa_key" -N '' -q
+    ssh-keygen -t ecdsa -b 256 -f "$WORKDIR/${1}_ecdsa_key" -N '' -q
+    ssh-keygen -t ed25519 -f "$WORKDIR/${1}_ed25519_key" -N '' -q
+}
 
-(
-    cd "$WORKDIR"
+# generate key pairs for sender (Alice)
+generate_keys "alice"
 
-    # generate key pairs
-    # for sender (Alice)
-    ssh-keygen -t rsa -b 2048 -f alice_rsa_key -N '' -q
-    ssh-keygen -t ecdsa -b 256 -f alice_ecdsa_key -N '' -q
-    ssh-keygen -t ed25519 -f alice_ed25519_key -N '' -q
+# generate key pairs for receiver (Bob)
+generate_keys "bob"
 
-    # for receiver (Bob)
-    ssh-keygen -t rsa -b 2048 -f bob_rsa_key -N '' -q
-    ssh-keygen -t ecdsa -b 256 -f bob_ecdsa_key -N '' -q
-    ssh-keygen -t ed25519 -f bob_ed25519_key -N '' -q
+# create receiver's public key list
+BOB_PUB_LIST="$WORKDIR/bob_pub_list.txt"
+cat "$WORKDIR/bob_ecdsa_key.pub" \
+    "$WORKDIR/bob_ed25519_key.pub" \
+    "$WORKDIR/bob_rsa_key.pub" \
+     > "$BOB_PUB_LIST"
 
-    cat bob_ecdsa_key.pub bob_ed25519_key.pub bob_rsa_key.pub > bob_pub_list.txt
+# create message file
+MESSAGE_FILE="$WORKDIR/plain.txt"
+echo <<EOF > "$MESSAGE_FILE"
+Veni, vidi, vici.
+Alea iacta est.
+Et tu, Brute?
+EOF
 
-    echo "Veni, vidi, vici." > plain.txt
-    echo "Alea iacta est." >> plain.txt
-    echo "Et tu, Brute?" >> plain.txt
+HAS_ERROR=0
 
-    decrypt() {
-        ./git-caesar -F 1 -d -k "bob_${2}_key" -u "alice_${1}_key.pub" -i "encrypted_${1}.bin" -o "decrypted_${1}_${2}.txt"
-        if diff plain.txt "decrypted_${1}_${2}.txt"; then
-            echo "Success. ${1} -> ${2}"
-        else
-            echo "Failed. ${1} -> ${2}"
-        fi
-        rm "decrypted_${1}_${2}.txt"
-    }
+for VERSION in 1 2; do
 
-    # encrypt (RSA)
-    ./git-caesar -F 1 -k alice_rsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_rsa.bin
-    # decrypt
-    decrypt rsa rsa
-    decrypt rsa ecdsa
-    decrypt rsa ed25519
+    for ALICE_KEY_TYPE in rsa ecdsa ed25519; do
 
-    # encrypt (ECDSA)
-    ./git-caesar -F 1 -k alice_ecdsa_key -u bob_pub_list.txt -i plain.txt -o encrypted_ecdsa.bin
+        ALICE_PUB_KEY="$WORKDIR/alice_${ALICE_KEY_TYPE}_key.pub"
+        ALICE_PRV_KEY="$WORKDIR/alice_${ALICE_KEY_TYPE}_key"
+        ENCRYPTED_FILE="$WORKDIR/encrypted_${ALICE_KEY_TYPE}_${VERSION}.bin"
 
-    # decrypt
-    decrypt ecdsa rsa
-    decrypt ecdsa ecdsa
-    decrypt ecdsa ed25519
+        "$GIT_CAESAR" -F "$VERSION" \
+            -k "$ALICE_PRV_KEY" \
+            -u "$BOB_PUB_LIST" \
+            -i "$MESSAGE_FILE" \
+            -o "$ENCRYPTED_FILE"
 
-    # encrypt (ED25519)
-    ./git-caesar -F 1 -k alice_ed25519_key -u bob_pub_list.txt -i plain.txt -o encrypted_ed25519.bin
+        for BOB_KEY_TYPE in rsa ecdsa ed25519; do
 
-    # decrypt
-    decrypt ed25519 rsa
-    decrypt ed25519 ecdsa
-    decrypt ed25519 ed25519
-)
+            BOB_PRV_KEY="$WORKDIR/bob_${BOB_KEY_TYPE}_key"
+            DECRYPTED_FILE="$WORKDIR/decrypted_${ALICE_KEY_TYPE}_${BOB_KEY_TYPE}_${VERSION}.txt"
 
-rm -rf "$WORKDIR"
+            "$GIT_CAESAR" -d \
+                -k "$BOB_PRV_KEY" \
+                -u "$ALICE_PUB_KEY" \
+                -i "$ENCRYPTED_FILE" \
+                -o "$DECRYPTED_FILE"
+
+            if cmp -s "$MESSAGE_FILE" "$DECRYPTED_FILE"; then
+                echo "Success. ${ALICE_KEY_TYPE} -> ${BOB_KEY_TYPE} / Ver. ${VERSION}"
+            else
+                echo "Failed. ${ALICE_KEY_TYPE} -> ${BOB_KEY_TYPE} / Ver. ${VERSION}"
+                HAS_ERROR=1
+            fi
+        done
+    done
+done
+
+if [ "$HAS_ERROR" -ne 0 ]; then
+    echo "Some tests failed." >&2
+    echo "Please check the following folder: $WORKDIR"
+    exit 1
+else
+    echo "All tests passed successfully."
+    rm -rf "$WORKDIR"
+fi

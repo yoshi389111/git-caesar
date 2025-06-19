@@ -3,6 +3,7 @@ package pubkeylib
 import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"fmt"
 	"strings"
@@ -27,7 +28,11 @@ func ToCaesarPubKey(sshPubKey ssh.PublicKey) caesar.PublicKey {
 			return rs.NewPublicKey(*rsaPubKey, sshPubKey)
 		}
 	} else if ecdsaPubKey, ok := cryptoPubKey.(*ecdsa.PublicKey); ok {
-		return ec.NewPublicKey(*ecdsaPubKey, sshPubKey)
+		if ecdsaPubKey.Curve == elliptic.P256() ||
+			ecdsaPubKey.Curve == elliptic.P384() ||
+			ecdsaPubKey.Curve == elliptic.P521() {
+			return ec.NewPublicKey(*ecdsaPubKey, sshPubKey)
+		}
 	} else if ed25519PubKey, ok := cryptoPubKey.(ed25519.PublicKey); ok {
 		return ed.NewPublicKey(ed25519PubKey, sshPubKey)
 	}

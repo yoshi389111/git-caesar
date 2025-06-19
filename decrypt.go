@@ -35,11 +35,6 @@ func decrypt(peerPubKeys []caesar.PublicKey, prvKey caesar.PrivateKey, ciphertex
 		return nil, fmt.Errorf("failed to unmarshal `caesar.json`: %w", err)
 	}
 
-	// format version validation
-	if !IsValidCaesarJsonVersion(caesarJson.Version) {
-		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", caesarJson.Version)
-	}
-
 	// existence check of sender's public key
 	if peerPubKeys != nil {
 		verifySender := false

@@ -12,10 +12,14 @@ build: ## Build
 	go build $(GOFLAGS) -trimpath -o target
 .PHONY: build
 
+clean: ## Clean build artifacts
+	rm -rf ./target
+.PHONY: clean
+
 test: ## Unit test
 	go test ./... --count=1 -v
 .PHONY: test
 
-roundtrip: ## Roundtrip test
+roundtrip: build ## Roundtrip test
 	./roundtrip.sh
 .PHONY: roundtrip
