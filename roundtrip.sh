@@ -30,7 +30,7 @@ cat "$WORKDIR/bob_ecdsa_key.pub" \
 
 # create message file
 MESSAGE_FILE="$WORKDIR/plain.txt"
-echo <<EOF > "$MESSAGE_FILE"
+cat <<EOF > "$MESSAGE_FILE"
 Veni, vidi, vici.
 Alea iacta est.
 Et tu, Brute?
