@@ -19,7 +19,7 @@ func Encrypt(version string, pubKey *rsa.PublicKey, plaintext []byte) ([]byte, e
 	switch version {
 	case common.Version1:
 		return encryptV1(pubKey, plaintext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return encryptV2(pubKey, plaintext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -39,7 +39,7 @@ func Decrypt(version string, prvKey *rsa.PrivateKey, ciphertext []byte) ([]byte,
 	switch version {
 	case common.Version1:
 		return decryptV1(prvKey, ciphertext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return decryptV2(prvKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -61,6 +61,8 @@ func Sign(version string, prvKey *rsa.PrivateKey, message []byte) ([]byte, error
 		return signV1(prvKey, message)
 	case common.Version2:
 		return signV2(prvKey, message)
+	case common.Version3:
+		return signV3(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -76,6 +78,15 @@ func signV2(prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
 	return rsa.SignPSS(rand.Reader, prvKey, crypto.SHA256, hash[:], nil)
 }
 
+func signV3(prvKey *rsa.PrivateKey, message []byte) ([]byte, error) {
+	h := selectHash(prvKey.PublicKey.N.BitLen())
+	hash, err := calcHash(h, message)
+	if err != nil {
+		return nil, err
+	}
+	return rsa.SignPSS(rand.Reader, prvKey, h, hash, nil)
+}
+
 // Verify verifies a signature using RSA.
 func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 	switch version {
@@ -83,6 +94,8 @@ func Verify(version string, pubKey *rsa.PublicKey, message, sig []byte) bool {
 		return verifyV1(pubKey, message, sig)
 	case common.Version2:
 		return verifyV2(pubKey, message, sig)
+	case common.Version3:
+		return verifyV3(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
@@ -98,4 +111,33 @@ func verifyV2(pubKey *rsa.PublicKey, message, sig []byte) bool {
 	hash := sha256.Sum256(message)
 	err := rsa.VerifyPSS(pubKey, crypto.SHA256, hash[:], sig, nil)
 	return err == nil
+}
+
+func verifyV3(pubKey *rsa.PublicKey, message, sig []byte) bool {
+	h := selectHash(pubKey.N.BitLen())
+	hash, err := calcHash(h, message)
+	if err != nil {
+		return false
+	}
+	err = rsa.VerifyPSS(pubKey, h, hash, sig, nil)
+	return err == nil
+}
+
+func selectHash(keyBitLen int) crypto.Hash {
+	if keyBitLen < 4096 {
+		return crypto.SHA256
+	} else {
+		return crypto.SHA512
+	}
+}
+
+func calcHash(hashType crypto.Hash, message []byte) ([]byte, error) {
+	if !hashType.Available() {
+		return nil, fmt.Errorf("hash type %s is not available", hashType)
+	}
+	h := hashType.New()
+	if _, err := h.Write(message); err != nil {
+		return nil, err
+	}
+	return h.Sum(nil), nil
 }

@@ -15,6 +15,7 @@ func Test_Encrypt_Decrypt_ed25519(t *testing.T) {
 	}{
 		"ed25519_formatVer1": {"1"},
 		"ed25519_formatVer2": {"2"},
+		"ed25519_formatVer3": {"3"},
 	}
 
 	message := []byte("hello world --------------- 0256") // 32byte
@@ -67,6 +68,7 @@ func Test_Sign_Verify(t *testing.T) {
 	}{
 		"ed25519_formatVer1": {"1"},
 		"ed25519_formatVer2": {"2"},
+		"ed25519_formatVer3": {"3"},
 	}
 
 	message := []byte("hello world --------------- 0521")
@@ -95,6 +97,7 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 	}{
 		"ed25519_formatVer1": {"1"},
 		"ed25519_formatVer2": {"2"},
+		"ed25519_formatVer3": {"3"},
 	}
 
 	message := []byte("hello world --------------- 1024") // 32byte
@@ -136,6 +139,7 @@ func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
 	}{
 		"ed25519_formatVer1": {"1"},
 		"ed25519_formatVer2": {"2"},
+		"ed25519_formatVer3": {"3"},
 	}
 
 	message := []byte("hello world --------------- 1024") // 32byte

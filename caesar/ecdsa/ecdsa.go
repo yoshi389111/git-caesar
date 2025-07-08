@@ -2,9 +2,11 @@ package ecdsa
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/hkdf"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"math/big"
 
@@ -21,7 +23,7 @@ func Encrypt(version string, peersPubKey *ecdsa.PublicKey, message []byte) ([]by
 	switch version {
 	case common.Version1:
 		return encryptV1(version, peersPubKey, message)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return encryptV2(version, peersPubKey, message)
 	default:
 		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -102,7 +104,7 @@ func Decrypt(version string, prvKey *ecdsa.PrivateKey, peersPubKey *ecdsa.Public
 	switch version {
 	case common.Version1:
 		return decryptV1(version, prvKey, peersPubKey, ciphertext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return decryptV2(version, prvKey, peersPubKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -180,6 +182,8 @@ func Sign(version string, prvKey *ecdsa.PrivateKey, message []byte) ([]byte, err
 	switch version {
 	case common.Version1, common.Version2:
 		return signV1(prvKey, message)
+	case common.Version3:
+		return signV3(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
 	}
@@ -194,11 +198,25 @@ func signV1(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
 	return sig, nil
 }
 
+func signV3(prvKey *ecdsa.PrivateKey, message []byte) ([]byte, error) {
+	hash, err := curveHash(message, prvKey.Curve)
+	if err != nil {
+		return nil, err
+	}
+	sig, err := ecdsa.SignASN1(rand.Reader, prvKey, hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign ecdsa: %w", err)
+	}
+	return sig, nil
+}
+
 // Verify checks an ECDSA signature for the given message.
 func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	switch version {
 	case common.Version1, common.Version2:
 		return verifyV1(pubKey, message, sig)
+	case common.Version3:
+		return verifyV3(pubKey, message, sig)
 	default:
 		return false // unknown version
 	}
@@ -207,4 +225,28 @@ func Verify(version string, pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 func verifyV1(pubKey *ecdsa.PublicKey, message, sig []byte) bool {
 	hash := sha256.Sum256(message)
 	return ecdsa.VerifyASN1(pubKey, hash[:], sig)
+}
+
+func verifyV3(pubKey *ecdsa.PublicKey, message, sig []byte) bool {
+	hash, err := curveHash(message, pubKey.Curve)
+	if err != nil {
+		return false
+	}
+	return ecdsa.VerifyASN1(pubKey, hash, sig)
+}
+
+func curveHash(message []byte, curve elliptic.Curve) ([]byte, error) {
+	switch curve {
+	case elliptic.P256():
+		h := sha256.Sum256(message)
+		return h[:], nil
+	case elliptic.P384():
+		h := sha512.Sum384(message)
+		return h[:], nil
+	case elliptic.P521():
+		h := sha512.Sum512(message)
+		return h[:], nil
+	default:
+		return nil, fmt.Errorf("unsupported elliptic curve: %s", curve.Params().Name)
+	}
 }
