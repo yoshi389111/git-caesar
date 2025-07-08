@@ -34,10 +34,11 @@ func Test_Encrypt_Decrypt_ecdsa(t *testing.T) {
 		formatVersion string
 	}{
 		"ecdsa256_formatVer1": {"P256", "1"},
-
 		"ecdsa256_formatVer2": {"P256", "2"},
-		"ecdsa384_formatVer2": {"P384", "2"},
-		"ecdsa521_formatVer2": {"P521", "2"},
+
+		"ecdsa256_formatVer3": {"P256", "3"},
+		"ecdsa384_formatVer3": {"P384", "3"},
+		"ecdsa521_formatVer3": {"P521", "3"},
 	}
 
 	message := []byte("hello world --------------- 0256") // 32byte
@@ -96,10 +97,11 @@ func Test_Sign_Verify_ecdsa(t *testing.T) {
 		formatVersion string
 	}{
 		"ecdsa256_formatVer1": {"P256", "1"},
-
 		"ecdsa256_formatVer2": {"P256", "2"},
-		"ecdsa384_formatVer2": {"P384", "2"},
-		"ecdsa521_formatVer2": {"P521", "2"},
+
+		"ecdsa256_formatVer3": {"P256", "3"},
+		"ecdsa384_formatVer3": {"P384", "3"},
+		"ecdsa521_formatVer3": {"P521", "3"},
 	}
 
 	message := []byte("hello world --------------- 0521")
@@ -134,10 +136,11 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 		formatVersion string
 	}{
 		"ecdsa256_formatVer1": {"P256", "1"},
-
 		"ecdsa256_formatVer2": {"P256", "2"},
-		"ecdsa384_formatVer2": {"P384", "2"},
-		"ecdsa521_formatVer2": {"P521", "2"},
+
+		"ecdsa256_formatVer3": {"P256", "3"},
+		"ecdsa384_formatVer3": {"P384", "3"},
+		"ecdsa521_formatVer3": {"P521", "3"},
 	}
 
 	message := []byte("hello world --------------- 1024") // 32byte
@@ -183,10 +186,11 @@ func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
 		formatVersion string
 	}{
 		"ecdsa256_formatVer1": {"P256", "1"},
-
 		"ecdsa256_formatVer2": {"P256", "2"},
-		"ecdsa384_formatVer2": {"P384", "2"},
-		"ecdsa521_formatVer2": {"P521", "2"},
+
+		"ecdsa256_formatVer3": {"P256", "3"},
+		"ecdsa384_formatVer3": {"P384", "3"},
+		"ecdsa521_formatVer3": {"P521", "3"},
 	}
 
 	message := []byte("hello world --------------- 1024") // 32byte

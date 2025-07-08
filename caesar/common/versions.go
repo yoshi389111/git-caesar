@@ -5,4 +5,6 @@ const (
 	Version1 string = "1"
 	// Version2 is the second version of caesar.json format.
 	Version2 string = "2"
+	// Version3 is the 3rd version of caesar.json format.
+	Version3 string = "3"
 )

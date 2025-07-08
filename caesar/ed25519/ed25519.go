@@ -20,7 +20,7 @@ func Encrypt(version string, peerPubKey *ed25519.PublicKey, message []byte) ([]b
 	switch version {
 	case common.Version1:
 		return encryptV1(version, peerPubKey, message)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return encryptV2(version, peerPubKey, message)
 	default:
 		return nil, nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -93,7 +93,7 @@ func Decrypt(version string, prvKey *ed25519.PrivateKey, peerPubKey *ed25519.Pub
 	switch version {
 	case common.Version1:
 		return decryptV1(version, prvKey, peerPubKey, ciphertext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return decryptV2(version, prvKey, peerPubKey, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -170,7 +170,7 @@ func Sign(version string, prvKey *ed25519.PrivateKey, message []byte) ([]byte, e
 	switch version {
 	case common.Version1:
 		return signV1(prvKey, message)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return signV2(prvKey, message)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -196,7 +196,7 @@ func Verify(version string, pubKey *ed25519.PublicKey, message, sig []byte) bool
 	switch version {
 	case common.Version1:
 		return verifyV1(pubKey, message, sig)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return verifyV2(pubKey, message, sig)
 	default:
 		return false // unknown version

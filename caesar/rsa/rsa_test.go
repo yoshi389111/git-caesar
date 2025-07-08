@@ -5,10 +5,37 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/hex"
+	"fmt"
+	"sync"
 	"testing"
 
 	"golang.org/x/crypto/ssh"
 )
+
+var (
+	rsaKeys  = make(map[int]*rsa.PrivateKey)
+	keysOnce sync.Once
+)
+
+func generateTestKeys() {
+	bitLengths := []int{1024, 2048, 4096}
+	for _, bits := range bitLengths {
+		key, err := rsa.GenerateKey(rand.Reader, bits)
+		if err != nil {
+			panic(err)
+		}
+		rsaKeys[bits] = key
+	}
+}
+
+func getTestKey(bits int) (*rsa.PrivateKey, error) {
+	keysOnce.Do(generateTestKeys)
+	key, exists := rsaKeys[bits]
+	if !exists {
+		return nil, fmt.Errorf("test key not found for bit length: %d", bits)
+	}
+	return key, nil
+}
 
 func Test_EncryptDecryptRsa(t *testing.T) {
 	cases := map[string]struct {
@@ -16,16 +43,17 @@ func Test_EncryptDecryptRsa(t *testing.T) {
 		formatVersion string
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
-
-		"rsa1024_formatVer2": {1024, "2"},
 		"rsa2048_formatVer2": {2048, "2"},
-		"rsa4096_formatVer2": {4096, "2"},
+
+		"rsa1024_formatVer3": {1024, "3"},
+		"rsa2048_formatVer3": {2048, "3"},
+		"rsa4096_formatVer3": {4096, "3"},
 	}
 
 	message := []byte("hello world ------------ 32 byte")
 	for name, tc := range cases {
 		t.Run("Encrypt_Decrypt_"+name, func(t *testing.T) {
-			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -72,16 +100,17 @@ func Test_SignVerifyRsa(t *testing.T) {
 		formatVersion string
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
-
-		"rsa1024_formatVer2": {1024, "2"},
 		"rsa2048_formatVer2": {2048, "2"},
-		"rsa4096_formatVer2": {4096, "2"},
+
+		"rsa1024_formatVer3": {1024, "3"},
+		"rsa2048_formatVer3": {2048, "3"},
+		"rsa4096_formatVer3": {4096, "3"},
 	}
 
 	message := []byte("hello world ------------ 32 byte")
 	for name, tc := range cases {
 		t.Run("Sign_Verify_"+name, func(t *testing.T) {
-			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -106,12 +135,13 @@ func Test_NewEnvelope_ExtractShareKey(t *testing.T) {
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
 		"rsa2048_formatVer2": {2048, "2"},
+		"rsa2048_formatVer3": {2048, "3"},
 	}
 
 	message := []byte("hello world ------------ 32 byte")
 	for name, tc := range cases {
 		t.Run("NewEnvelope_ExtractShareKey_"+name, func(t *testing.T) {
-			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -149,12 +179,15 @@ func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
 		"rsa2048_formatVer2": {2048, "2"},
+
+		"rsa2048_formatVer3": {2048, "3"},
+		"rsa4096_formatVer3": {4096, "3"},
 	}
 
 	message := []byte("hello world --------------- 1024") // 32byte
 	for name, tc := range cases {
 		t.Run("PrivateKey_PublicKey_"+name, func(t *testing.T) {
-			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -181,7 +214,7 @@ func Test_PrivateKeySign_PublicKeyVerify(t *testing.T) {
 }
 
 func Test_EncryptDecryptRsa_InvalidVersion(t *testing.T) {
-	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	prvKey, err := getTestKey(2048)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +233,7 @@ func Test_EncryptDecryptRsa_InvalidVersion(t *testing.T) {
 }
 
 func Test_SignVerifyRsa_InvalidVersion(t *testing.T) {
-	prvKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	prvKey, err := getTestKey(2048)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +256,7 @@ func Test_SignVerifyRsa_InvalidVersion(t *testing.T) {
 }
 
 func Test_EncryptDecryptRsa_WrongKey(t *testing.T) {
-	prvKey1, err := rsa.GenerateKey(rand.Reader, 2048)
+	prvKey1, err := getTestKey(2048)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,11 +285,12 @@ func Test_SignVerifyRsa_WrongKey(t *testing.T) {
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
 		"rsa2048_formatVer2": {2048, "2"},
+		"rsa2048_formatVer3": {2048, "3"},
 	}
 	for name, tc := range cases {
 		t.Run("Sign_Verify_wrong_key_"+name, func(t *testing.T) {
 
-			prvKey1, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey1, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -286,12 +320,13 @@ func Test_SignVerifyRsa_ModifiedMessage(t *testing.T) {
 	}{
 		"rsa2048_formatVer1": {2048, "1"},
 		"rsa2048_formatVer2": {2048, "2"},
+		"rsa2048_formatVer3": {2048, "3"},
 	}
 
 	for name, tc := range cases {
 		t.Run("Sign_Verify_modified_message/"+name, func(t *testing.T) {
 
-			prvKey, err := rsa.GenerateKey(rand.Reader, tc.keyLength)
+			prvKey, err := getTestKey(tc.keyLength)
 			if err != nil {
 				t.Fatal(err)
 			}

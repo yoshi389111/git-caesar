@@ -16,7 +16,7 @@ func Encrypt(version string, key, plaintext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return encryptV1(key, plaintext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return encryptV2(key, plaintext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)
@@ -80,7 +80,7 @@ func Decrypt(version string, key, ciphertext []byte) ([]byte, error) {
 	switch version {
 	case common.Version1:
 		return decryptV1(key, ciphertext)
-	case common.Version2:
+	case common.Version2, common.Version3:
 		return decryptV2(key, ciphertext)
 	default:
 		return nil, fmt.Errorf("unknown `caesar.json` version `%s`", version)

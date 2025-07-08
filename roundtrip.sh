@@ -38,7 +38,7 @@ EOF
 
 HAS_ERROR=0
 
-for VERSION in 1 2; do
+for VERSION in 1 2 3; do
 
     for ALICE_KEY_TYPE in rsa ecdsa ed25519; do
 
