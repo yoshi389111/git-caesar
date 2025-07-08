@@ -45,9 +45,9 @@ func Test_EncryptDecryptRsa(t *testing.T) {
 		"rsa2048_formatVer1": {2048, "1"},
 		"rsa2048_formatVer2": {2048, "2"},
 
-		"rsa1024_formatVer3": {1024, "2"},
-		"rsa2048_formatVer3": {2048, "2"},
-		"rsa4096_formatVer3": {4096, "2"},
+		"rsa1024_formatVer3": {1024, "3"},
+		"rsa2048_formatVer3": {2048, "3"},
+		"rsa4096_formatVer3": {4096, "3"},
 	}
 
 	message := []byte("hello world ------------ 32 byte")
