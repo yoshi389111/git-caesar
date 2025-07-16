@@ -1,6 +1,7 @@
 SHELL = /bin/sh
 VERSION = $(shell git describe --tags --abbrev=0)
 GOFLAGS = -ldflags "-s -w -X main.version=$(shell git describe --tags --dirty)"
+MODULE_NAME = $(shell go list -m)
 
 .DEFAULT_GOAL = help
 help: ## Show help message
@@ -23,3 +24,15 @@ test: ## Unit test
 roundtrip: build ## Roundtrip test
 	./roundtrip.sh
 .PHONY: roundtrip
+
+licenses: ## Create Third Party Licenses
+	@# requires go-licenses tool
+	@# ```shell
+	@# go install github.com/google/go-licenses@latest
+	@# ```
+	@rm -rf licenses
+	@go-licenses save ./... --save_path=licenses --force
+	@rm -rf licenses/$(MODULE_NAME)
+	@find licenses -type d -empty -delete
+	@go-licenses csv ./... | grep -v "^$(MODULE_NAME)," > licenses/THIRD_PARTY_LICENSES.csv
+.PHONY: licenses

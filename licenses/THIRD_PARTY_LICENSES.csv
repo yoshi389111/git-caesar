@@ -1,0 +1,4 @@
+github.com/jessevdk/go-flags,https://github.com/jessevdk/go-flags/blob/v1.6.1/LICENSE,BSD-3-Clause
+golang.org/x/crypto,https://cs.opensource.google/go/x/crypto/+/v0.36.0:LICENSE,BSD-3-Clause
+golang.org/x/sys/unix,https://cs.opensource.google/go/x/sys/+/v0.31.0:LICENSE,BSD-3-Clause
+golang.org/x/term,https://cs.opensource.google/go/x/term/+/v0.30.0:LICENSE,BSD-3-Clause
