@@ -1,8 +1,8 @@
-# GIT-CAESAR
+# GIT-CAESAR(1)
 
 ## NAME
 
-**git-caesar** - Command-line tool for encrypting and decrypting files using public key cryptography
+**git-caesar** — Command-line tool for encrypting and decrypting files using public key cryptography
 
 ## SYNOPSIS
 
@@ -50,8 +50,8 @@ Encryption uses the recipient's public key. Decryption uses your private key.
 
 - `-F`, `--format-version=<version>`
   - Format version of the encrypted file.
-    Versions `1` and `2` are valid. Version `1` is deprecated.
-    Default: `2`.
+    Versions `1`, `2` and `3` are valid. Version `1` and `2` is deprecated.
+    Default: `3`.
 
 ## EXAMPLES
 
@@ -134,16 +134,39 @@ Download the file that matches your operating environment from "Releases."
 
 ### Encryption and Signature Algorithms
 
-#### Format version 2 (recommended; since v0.0.9)
+#### Format version 3 (recommended)
+
+- supported since v0.0.10
+
+| Algorithm          | Encryption/Decryption                     | Signing/Verification         |
+|--------------------|-------------------------------------------|------------------------------|
+| AES                | AES-256-GCM                               | N/A                          |
+| RSA (≤ 4096-bit)   | RSA-OAEP (SHA-256)                        | RSA-PSS (SHA-256)            |
+| RSA (> 4096-bit)   | RSA-OAEP (SHA-256)                        | RSA-PSS (SHA-512)            |
+| ECDSA/ECDH (P-256) | ECDH + HKDF-SHA-256 + AES-256-GCM         | ECDSA (SHA-256)              |
+| ECDSA/ECDH (P-384) | ECDH + HKDF-SHA-256 + AES-256-GCM         | ECDSA (SHA-384)              |
+| ECDSA/ECDH (P-521) | ECDH + HKDF-SHA-256 + AES-256-GCM         | ECDSA (SHA-512)              |
+| ED25519/X25519     | X25519 + HKDF-SHA-256 + AES-256-GCM       | ED25519 (SHA-512)            |
+
+<details>
+<summary>Old format versions</summary>
+
+#### Format version 2
+
+- supported since v0.0.9
+- deprecated since v0.0.10
 
 | Algorithm        | Encryption/Decryption                       | Signing/Verification         |
 |------------------|---------------------------------------------|------------------------------|
 | AES              | AES-256-GCM                                 | N/A                          |
 | RSA              | RSA-OAEP (SHA-256)                          | RSA-PSS (SHA-256)            |
-| ECDSA/ECDH       | ECDH + HKDF-SHA-256 + AES-256-GCM           | ECDSA (SHA-256)              |
+| ECDSA/ECDH       | ECDH + HKDF-SHA-256 + AES-256-GCM           | ECDSA (SHA-256) ⚠️           |
 | ED25519/X25519   | X25519 + HKDF-SHA-256 + AES-256-GCM         | ED25519 (SHA-512)            |
 
-#### Format version 1 (deprecated)
+#### Format version 1
+
+- supported since v0.0.1
+- deprecated since v0.0.9
 
 | Algorithm        | Encryption/Decryption                       | Signing/Verification         |
 |------------------|---------------------------------------------|------------------------------|
@@ -151,6 +174,8 @@ Download the file that matches your operating environment from "Releases."
 | RSA              | RSA-OAEP (SHA-256)                          | RSA-PKCS1-v1_5 (SHA-256)     |
 | ECDSA/ECDH       | ECDH + ⚠️SHA-256 (for key derivation) + AES-256-CBC   | ECDSA (SHA-256)   |
 | ED25519/X25519   | X25519 + ⚠️SHA-256 (for key derivation) + AES-256-CBC | ED25519 (⚠️with pre-hashed SHA-256 input) |
+
+</details>
 
 ## SECURITY
 
@@ -166,11 +191,9 @@ However, this practice has the following potential security risks:
 
 ## SEE ALSO
 
-- dev.to [Passwordless encryption with public key for GitHub](https://dev.to/yoshi389111/passwordless-encryption-with-public-key-for-github-kb6) English
-- Qiita [GitHub 用の公開鍵でパスワードレスの暗号化/復号をしてみる](https://qiita.com/yoshi389111/items/238908e1933a8a4018c6) Japanese
+- [Passwordless encryption with public key for GitHub (dev.to)](https://dev.to/yoshi389111/passwordless-encryption-with-public-key-for-github-kb6) — English article about this tool
+- [GitHub 用の公開鍵でパスワードレスの暗号化/復号をしてみる (Qiita)](https://qiita.com/yoshi389111/items/238908e1933a8a4018c6) — Japanese article about this tool
 
-## LICENSE
+## COPYRIGHT
 
-MIT License
-
-&copy; 2023 SATO, Yoshiyuki
+&copy; 2023 SATO, Yoshiyuki. MIT Licensed.
