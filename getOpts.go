@@ -47,7 +47,7 @@ type Options struct {
 	InputPath     string      `short:"i" long:"input" value-name:"<input_file>" description:"the path of the file to read. default: stdin"`
 	OutputPath    string      `short:"o" long:"output" value-name:"<output_file>" description:"the path of the file to write. default: stdout"`
 	Decrypt       bool        `short:"d" long:"decrypt" description:"decryption mode."`
-	FormatVersion VersionType `short:"F" long:"format-version" value-name:"<version>" description:"format version of the encrypted file." default:"1"`
+	FormatVersion VersionType `short:"F" long:"format-version" value-name:"<version>" description:"format version of the encrypted file." default:"3"`
 }
 
 func getOpts() Options {
