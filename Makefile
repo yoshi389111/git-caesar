@@ -2,6 +2,7 @@ SHELL = /bin/sh
 VERSION = $(shell git describe --tags --abbrev=0)
 GOFLAGS = -ldflags "-s -w -X main.version=$(shell git describe --tags --dirty)"
 MODULE_NAME = $(shell go list -m)
+GOVERSION = $(shell go env GOVERSION)
 
 .DEFAULT_GOAL = help
 help: ## Show help message
@@ -35,4 +36,7 @@ licenses: ## Create Third Party Licenses
 	@rm -rf licenses/$(MODULE_NAME)
 	@find licenses -type d -empty -delete
 	@go-licenses csv ./... | grep -v "^$(MODULE_NAME)," > licenses/THIRD_PARTY_LICENSES.csv
+	@mkdir -p licenses/github.com/go/golang
+	@curl -Lq -o licenses/github.com/go/golang/LICENSE --retry 5 "https://raw.githubusercontent.com/golang/go/refs/tags/$(GOVERSION)/LICENSE"
+	@echo "github.com/golang/go (stdlib),https://github.com/golang/go/blob/$(GOVERSION)/LICENSE,BSD-3-Clause" >> licenses/THIRD_PARTY_LICENSES.csv
 .PHONY: licenses
