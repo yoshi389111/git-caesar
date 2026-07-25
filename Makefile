@@ -29,7 +29,7 @@ roundtrip: build ## Roundtrip test
 licenses: ## Create Third Party Licenses
 	@# requires go-licenses tool
 	@# ```shell
-	@# go install github.com/google/go-licenses@latest
+	@# go install github.com/haproxytech/go-licenses/v2@latest
 	@# ```
 	@rm -rf licenses
 	@go-licenses save ./... --save_path=licenses --force
