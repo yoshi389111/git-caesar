@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.2] - 2026-07-25
 
+### Changed
+
+- Introduced `CHANGELOG.md` using the Keep a Changelog format, including entries for previous releases.
+
 ### Security
 
 - Updated golang.org/x/crypto from 0.45.0 to 0.52.0 #46
